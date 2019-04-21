@@ -3,14 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "npm run prod",
-    "server": "babel-node ./src/bin/www",
-    "server:prod": "node ./dist/bin/www",
-    "dev": "NODE_ENV=development npm-run-all server",
-    "clean": "rimraf dist",
-    "build": "babel ./src --out-dir dist",
-    "prod": "NODE_ENV=production npm-run-all clean build server:prod",
-    "watch": "nodemon"
+    "start": "node ./bin/www",
+    "debug": "nodemon --inspect ./bin/www"
   },
   "dependencies": {
     "axios": "^0.18.0",
@@ -40,6 +34,7 @@
     "@babel/node": "^7.2.2",
     "@babel/polyfill": "^7.4.3",
     "@babel/preset-env": "^7.3.1",
+    "babel-preset-env": "^1.7.0",
     "nodemon": "^1.18.9"
   }
 }
