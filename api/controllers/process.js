@@ -505,7 +505,7 @@ module.exports = {
             email = user.email;
             user.addNotifications(notification[0]);
           }
-          mailer.main(email, type, process.uuid, freeUser);
+          mailer.main(email || req.userEmail, type, process.uuid, freeUser);
         } else {
           await Notification.update(
             {
@@ -523,7 +523,7 @@ module.exports = {
 
         socketApi.sendNotificationDashboard(noty);
         const status = parseInt(req.body.data.status);
-        mailer.main(email, type, process.uuid, freeUser);
+        mailer.main(email || req.userEmail, type, process.uuid, freeUser);
 
         if (status === 100) {
           const response = await externalApi.retrievefile(process.fileId);
@@ -555,7 +555,7 @@ module.exports = {
             };
             socketApi.sendNotificationDashboard(noty);
 
-            mailer.main(email, type, process.uuid, freeUser);
+            mailer.main(email || req.userEmail, type, process.uuid, freeUser);
           }
         }
 
