@@ -54,7 +54,7 @@ router.get('/api/configuration', configuration.getConfiguration);
 router.put('/api/paypal', configuration.setPaypal);
 router.put('/api/email', configuration.setEmailNotification);
 
-router.post('/api/email', mailer.main('ernestomr87@gmail.com',''));
+// router.post('/api/email', mailer.main('ernestomr87@gmail.com',''));
 
 
 
