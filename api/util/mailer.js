@@ -13,6 +13,8 @@ let testAccount = {
 };
 
 async function main(email, status, uuid, freeUser) {
+    console.log("-----------------------");
+    console.log(email, status, uuid, freeUser);
     let transporter = nodemailer.createTransport({
         host: "smtp.pangeanic.com",
         port: 587,
