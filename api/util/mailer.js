@@ -29,14 +29,15 @@ async function main(email, status, uuid, freeUser) {
         let send = false;
         let type;
         if (config && config.email_notification) {
-            config.email_notification.map((item) => {
-                console.log("-------------->",status);
-                type = _.lowerCase(item.name);
+            for (let i = 0; i <config.email_notification.length ; i++) {
+                type = _.lowerCase(config.email_notification[i].name);
                 type = _.replace(type, ' ', '_');
                 type = _.replace(type, '/', '_');
-                console.log("-------------->",type);
-                if (status === type) send = true;
-            })
+                if (status === type){
+                    send = true;
+                    break;
+                }
+            }
         }
         if (send) {
             await transporter.sendMail({
