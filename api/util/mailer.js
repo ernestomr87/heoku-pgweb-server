@@ -29,11 +29,11 @@ async function main(email, status, uuid, freeUser) {
         let send = false;
         let type;
         if (config && config.email_notification) {
-            for (let i = 0; i <config.email_notification.length ; i++) {
+            for (let i = 0; i < config.email_notification.length; i++) {
                 type = _.lowerCase(config.email_notification[i].name);
                 type = _.replace(type, ' ', '_');
                 type = _.replace(type, '/', '_');
-                if (status === type){
+                if (status === type && config.email_notification[i].value) {
                     send = true;
                     break;
                 }
