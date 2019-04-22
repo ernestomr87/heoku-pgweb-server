@@ -24,17 +24,27 @@ async function main(email, status, uuid, freeUser) {
     });
 
     try {
-        // let config = await Configuration.findOne();
-        console.log('----------------------');
-        console.log(status);
-        console.log('----------------------');
-        await transporter.sendMail({
-            from: `"Pgweb Pangeanic 👻" <${testAccount.user}>`, // sender address
-            to: `${email}`, // list of receivers
-            subject: 'Pgweb Pangeanic Process Status ✔', // Subject line
-            text: '', // plain text body
-            html: template.template(email, status, uuid, freeUser) // html body
-        });
+        let config = await Configuration.findOne();
+        let send = false;
+        let type;
+        if (config && config.email_notification) {
+            config.email_notification.map((item) => {
+                type = _.lowerCase(item.name);
+                type = _.replace(type, ' ', '_');
+                type = _.replace(type, '/', '_');
+                if (item.name === type) send = true;
+            })
+        }
+        if (send) {
+            await transporter.sendMail({
+                from: `"Pgweb Pangeanic 👻" <${testAccount.user}>`, // sender address
+                to: `${email}`, // list of receivers
+                subject: 'Pgweb Pangeanic Process Status ✔', // Subject line
+                text: '', // plain text body
+                html: template.template(email, status, uuid, freeUser) // html body
+            });
+        }
+
 
         return true;
     } catch (err) {
