@@ -33,7 +33,7 @@ async function main(email, status, uuid, freeUser) {
                 type = _.lowerCase(config.email_notification[i].name);
                 type = _.replace(type, ' ', '_');
                 type = _.replace(type, '/', '_');
-                if (status === type && config.email_notification[i].value) {
+                if (status === type && config.email_notification[i].value && (status==='quote_ready' && !freeUser)) {
                     send = true;
                     break;
                 }
