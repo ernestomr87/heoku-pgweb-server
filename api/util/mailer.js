@@ -1,5 +1,6 @@
 'use strict';
 const nodemailer = require('nodemailer');
+const _ = require('lodash');
 let template = require('./emailTemplate');
 
 const db = require('./../../db/models');
