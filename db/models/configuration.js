@@ -1,7 +1,7 @@
 'use strict';
 module.exports = (sequelize, DataTypes) => {
   const Configuration = sequelize.define('Configuration', {
-    mode: DataTypes.STRING,
+    mode: DataTypes.STRING,//sandbox or live
     client_id: DataTypes.STRING,
     client_secret: DataTypes.STRING,
     email_notification: DataTypes.JSON

@@ -2,6 +2,7 @@ let express = require('express');
 let verifySignUp = require('./verifySignUp');
 let verifyJwtToken = require('./verifyJwtToken');
 let controllers = require('./../controllers');
+let mailer = require('./../util/mailer');
 
 let checkDuplicateUserNameOrEmail = verifySignUp.checkDuplicateUserNameOrEmail;
 let verifyToken = verifyJwtToken.verifyToken;
@@ -53,6 +54,9 @@ router.get('/api/configuration', configuration.getConfiguration);
 router.put('/api/paypal', configuration.setPaypal);
 router.put('/api/email', configuration.setEmailNotification);
 
-router.post('/api/email', configuration.sendEmail);
+router.post('/api/email', mailer.main('ernestomr87@gmail.com',''));
+
+
+
 
 module.exports = router;

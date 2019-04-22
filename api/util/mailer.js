@@ -2,6 +2,10 @@
 const nodemailer = require('nodemailer');
 let template = require('./emailTemplate');
 
+const db = require('./../../db/models');
+const Configuration = db.Configuration;
+
+
 let testAccount = {
     user: "pgweb@pangeanic.com",
     pass: "santac1ara"
@@ -20,6 +24,10 @@ async function main(email, status, uuid, freeUser) {
     });
 
     try {
+        // let config = await Configuration.findOne();
+        console.log('----------------------');
+        console.log(status);
+        console.log('----------------------');
         await transporter.sendMail({
             from: `"Pgweb Pangeanic 👻" <${testAccount.user}>`, // sender address
             to: `${email}`, // list of receivers
