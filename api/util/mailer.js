@@ -30,14 +30,12 @@ async function main(email, status, uuid, freeUser) {
         let type;
         if (config && config.email_notification) {
             config.email_notification.map((item) => {
-                console.log("-------------->",item.name);
+                console.log("-------------->",status);
                 type = _.lowerCase(item.name);
-                console.log("-------------->",type);
                 type = _.replace(type, ' ', '_');
-                console.log("-------------->",type);
                 type = _.replace(type, '/', '_');
                 console.log("-------------->",type);
-                if (item.name === type) send = true;
+                if (status === type) send = true;
             })
         }
         if (send) {
