@@ -55,7 +55,8 @@ module.exports = {
                     'engineTarget',
                     'status',
                     'quotes',
-                    'fileDownload'
+                    'fileDownload',
+                    'quoteSelected'
                 ]
             });
 

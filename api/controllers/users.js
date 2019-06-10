@@ -1,17 +1,17 @@
-const Sequelize = require('sequelize');
+const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
-var bcrypt = require('bcryptjs');
+var bcrypt = require("bcryptjs");
 
-const db = require('./../../db/models');
+const db = require("./../../db/models");
 const User = db.User;
 const TypeOfPermits = db.TypeOfPermits;
 
 exports.listAll = async (req, res) => {
   try {
     let users;
-    if (req.userRol === 'client') {
+    if (req.userRol === "client") {
       const users = await User.findAll({
-        attributes: ['id', 'fullName', 'email', 'rol', 'typeOfUser'],
+        attributes: ["id", "fullName", "email", "rol", "typeOfUser"],
         include: [
           {
             model: TypeOfPermits
@@ -29,7 +29,7 @@ exports.listAll = async (req, res) => {
     } else {
       users = await User.findAll(
         {
-          attributes: ['id', 'fullName', 'email', 'rol', 'typeOfUser'],
+          attributes: ["id", "fullName", "email", "rol", "typeOfUser"],
           include: [
             {
               model: TypeOfPermits
@@ -57,7 +57,7 @@ exports.get = async (req, res) => {
   try {
     const user = await User.findOne(
       {
-        attributes: ['fullName', 'email', 'rol']
+        attributes: ["fullName", "email", "rol"]
       },
       {
         where: {
@@ -94,7 +94,7 @@ exports.remove = async (req, res) => {
       }
     );
     return res.status(200).send({
-      ok: 'Action success'
+      ok: "Action success"
     });
   } catch (err) {
     res.status(500).send(err);
@@ -106,7 +106,7 @@ exports.create = async (req, res) => {
       fullName: req.body.fullName,
       email: req.body.email,
       password: bcrypt.hashSync(req.body.password, 8),
-      rol: req.body.rol || 'user',
+      rol: req.body.rol || "user",
       typeOfUser: req.body.typeOfUser
     });
 
@@ -117,7 +117,7 @@ exports.create = async (req, res) => {
     });
 
     user.setTypeOfPermit(typeOfPermits);
-    if (req.userRol === 'client') {
+    if (req.userRol === "client") {
       let client = await User.findOne({
         where: {
           id: req.userId
@@ -126,7 +126,7 @@ exports.create = async (req, res) => {
       await client.setUsers(user);
     }
     return res.status(200).send({
-      ok: 'Action success'
+      ok: "Action success"
     });
   } catch (err) {
     res.status(500).send(err);
@@ -138,7 +138,7 @@ exports.update = async (req, res) => {
       {
         fullName: req.body.fullName,
         email: req.body.email,
-        rol: req.body.rol || 'user',
+        rol: req.body.rol || "user",
         typeOfUser: req.body.typeOfUser
       },
       {
@@ -155,7 +155,65 @@ exports.update = async (req, res) => {
     user.setTypeOfPermit(req.body.typeOfPermits);
 
     return res.status(200).send({
-      ok: 'Action success'
+      ok: "Action success"
+    });
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
+
+exports.profile = async (req, res) => {
+  try {
+    await User.update(
+      {
+        fullName: req.body.fullName,
+        email: req.body.email
+      },
+      {
+        where: {
+          id: req.userId
+        }
+      }
+    );
+    return res.status(200).send({
+      ok: "Action success"
+    });
+  } catch (err) {
+    res.status(500).send(err);
+  }
+};
+
+exports.password = async (req, res) => {
+  try {
+    const user = await User.findOne({
+      where: {
+        id: req.userId
+      }
+    });
+
+    const passwordIsValid = bcrypt.compareSync(
+      req.body.oldPassword,
+      user.password
+    );
+
+    if (!passwordIsValid) {
+      return res.status(401).send({
+        reason: "Invalid Password!"
+      });
+    }
+
+    await User.update(
+      {
+        password: bcrypt.hashSync(req.body.password, 8)
+      },
+      {
+        where: {
+          id: req.userId
+        }
+      }
+    );
+    return res.status(200).send({
+      ok: "Action success"
     });
   } catch (err) {
     res.status(500).send(err);
