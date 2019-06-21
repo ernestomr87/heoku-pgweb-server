@@ -20,6 +20,7 @@ exports.add = (req, res) => {
   // Save User to Database
   TypeOfPermits.create({
     name: req.body.name,
+    defaultValue: req.body.defaultValue,
     typeOfProcesses: req.body.typeOfProcesses
   })
     .then(result => {
@@ -35,6 +36,7 @@ exports.edit = (req, res) => {
   TypeOfPermits.update(
     {
       name: req.body.name,
+      defaultValue: req.body.defaultValue,
       typeOfProcesses: req.body.typeOfProcesses
     },
     {
