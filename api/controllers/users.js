@@ -18,7 +18,8 @@ exports.listAll = async (req, res) => {
           }
         ],
         where: {
-          userId: req.userId
+          userId: req.userId,
+          remove: false
         }
       });
 
@@ -27,21 +28,17 @@ exports.listAll = async (req, res) => {
         users
       });
     } else {
-      users = await User.findAll(
-        {
-          attributes: ["id", "fullName", "email", "rol", "typeOfUser"],
-          include: [
-            {
-              model: TypeOfPermits
-            }
-          ]
-        },
-        {
-          where: {
-            removed: false
+      users = await User.findAll({
+        attributes: ["id", "fullName", "email", "rol", "typeOfUser"],
+        include: [
+          {
+            model: TypeOfPermits
           }
+        ],
+        where: {
+          remove: false
         }
-      );
+      });
 
       return res.status(200).send({
         users
@@ -61,7 +58,8 @@ exports.get = async (req, res) => {
       },
       {
         where: {
-          id: req.body.id
+          id: req.body.id,
+          remove: false
         }
       },
       {
@@ -85,7 +83,7 @@ exports.remove = async (req, res) => {
   try {
     await User.update(
       {
-        removed: true
+        remove: true
       },
       {
         where: {
