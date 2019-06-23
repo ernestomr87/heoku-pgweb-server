@@ -1,22 +1,16 @@
-'use strict';
+"use strict";
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Notifications', {
+    return queryInterface.createTable("Notifications", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      type: {
-        type: Sequelize.STRING
-      },
-      data: {
-        type: Sequelize.JSON
-      },
-      check: {
-        type: Sequelize.BOOLEAN
-      },
+      type: Sequelize.STRING,
+      data: Sequelize.JSON,
+      check: Sequelize.BOOLEAN,
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -28,6 +22,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Notifications');
+    return queryInterface.dropTable("Notifications");
   }
 };

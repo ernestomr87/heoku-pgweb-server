@@ -1,18 +1,23 @@
-'use strict';
+"use strict";
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('TypeOfPermits', {
+    return queryInterface.createTable("TypeOfPermits", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      name: {
-        type: Sequelize.STRING
+      name: Sequelize.STRING,
+      defaultValue: Sequelize.STRING,
+      typeOfProcesses: Sequelize.JSON,
+      remove: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       },
-      TypeOfProcesses: {
-        type: Sequelize.JSON
+      default: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       },
       createdAt: {
         allowNull: false,
@@ -25,6 +30,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('TypeOfPermits');
+    return queryInterface.dropTable("TypeOfPermits");
   }
 };

@@ -1,19 +1,15 @@
-'use strict';
+"use strict";
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('billingInformations', {
+    return queryInterface.createTable("BillingInformation", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      billingAddress: {
-        type: Sequelize.STRING
-      },
-      nif: {
-        type: Sequelize.STRING
-      },
+      billingAddress: Sequelize.STRING,
+      nif: Sequelize.STRING,
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -25,6 +21,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('billingInformations');
+    return queryInterface.dropTable("billingInformations");
   }
 };

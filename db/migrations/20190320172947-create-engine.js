@@ -1,25 +1,15 @@
-'use strict';
+"use strict";
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.createTable('Engines', {
+    return queryInterface.createTable("Engines", {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      domain: {
-        type: Sequelize.STRING
-      },
-      name: {
-        type: Sequelize.STRING
-      },
-      source: {
-        type: Sequelize.STRING
-      },
-      target: {
-        type: Sequelize.STRING
-      },
+      name: Sequelize.STRING,
+      engines: Sequelize.JSON,
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
@@ -31,6 +21,6 @@ module.exports = {
     });
   },
   down: (queryInterface, Sequelize) => {
-    return queryInterface.dropTable('Engines');
+    return queryInterface.dropTable("Engines");
   }
 };

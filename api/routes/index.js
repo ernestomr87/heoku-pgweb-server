@@ -6,6 +6,7 @@ let mailer = require("./../util/mailer");
 
 let checkDuplicateUserNameOrEmail = verifySignUp.checkDuplicateUserNameOrEmail;
 let verifyToken = verifyJwtToken.verifyToken;
+let isAdmin = verifyJwtToken.isAdmin;
 
 let auth = controllers.auth;
 let configuration = controllers.configuration;
@@ -15,8 +16,10 @@ let users = controllers.users;
 
 const router = express.Router();
 
+
 // EXTERNAL PANGEAMT
 router.get("/api/engines", process.getExternalEngines);
+router.get("/api/engines/load", [verifyToken, isAdmin], process.load);
 router.post("/api/notification", process.notification);
 router.post("/api/process_file", process.sendFileToExternalProcess);
 
