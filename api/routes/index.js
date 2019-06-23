@@ -13,9 +13,12 @@ let configuration = controllers.configuration;
 let process = controllers.process;
 let typeOfPermits = controllers.typeOfPermits;
 let users = controllers.users;
+let dashboard = controllers.dashboard;
 
 const router = express.Router();
 
+// DASHBOARD
+router.get("/api/dashboard", dashboard.get);
 
 // EXTERNAL PANGEAMT
 router.get("/api/engines", process.getExternalEngines);

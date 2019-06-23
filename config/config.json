@@ -17,6 +17,7 @@
     "username": "root",
     "password": "epastor",
     "database": "pangeamt_production",
+    "database_dashboard": "relay",
     "host": "prod.pangeamt.com",
     "dialect": "mysql"
   },

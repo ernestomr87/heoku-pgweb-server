@@ -140,7 +140,7 @@ module.exports = {
           if (req.userRol === "admin") {
             return res
               .status(200)
-              .send({ value: typeOfPermits.defaultValue, process: result });
+              .send(engines);
           } else {
             typeOfPermits = await TypeOfPermits.findOne({
               where: {
