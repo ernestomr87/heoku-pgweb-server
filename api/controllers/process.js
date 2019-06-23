@@ -239,7 +239,7 @@ module.exports = {
         console.log(err);
       }
     } catch (error) {
-      return res.status(400).send({
+      return res.status(500).send({
         error: error
       });
     }
