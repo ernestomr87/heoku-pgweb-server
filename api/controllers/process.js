@@ -121,7 +121,7 @@ module.exports = {
   getExternalEngines: async (req, res) => {
     try {
       const engines = await Engines.findAll();
-      if (engines.data.success) {
+      if (engines) {
         if (!req.userId) {
           const typeOfPermits = await TypeOfPermits.findOne({
             where: {
@@ -129,17 +129,18 @@ module.exports = {
             }
           });
           if (typeOfPermits) {
-            let result = filterEngines(
-              engines.data.data,
-              typeOfPermits.typeOfProcesses
-            );
-            return res.status(200).send(result);
+            let result = filterEngines(engines, typeOfPermits.typeOfProcesses);
+            return res
+              .status(200)
+              .send({ value: typeOfPermits.defaultValue, process: result });
           }
-          return res.status(200).send(engines.data.data);
+          return res.status(200).send(engines);
         } else {
           let typeOfPermits;
           if (req.userRol === "admin") {
-            return res.status(200).send(engines.data.data);
+            return res
+              .status(200)
+              .send({ value: typeOfPermits.defaultValue, process: result });
           } else {
             typeOfPermits = await TypeOfPermits.findOne({
               where: {
@@ -161,7 +162,7 @@ module.exports = {
         error: engines.data.error || "No data"
       });
     } catch (err) {
-      res.status(400).send({
+      res.status(500).send({
         error: err
       });
     }
