@@ -12,7 +12,6 @@ const mailer = require("./../util/mailer");
 
 const externalApi = require("../external_api/api");
 const apiKey = require("./../../config/config")["apiKey"];
-const socketApi = require("./../../socketApi");
 const { getStatus } = require("./../util/functions");
 
 const filterEngines = (engines, types) => {
@@ -118,6 +117,7 @@ module.exports = {
       });
     }
   },
+
   getExternalEngines: async (req, res) => {
     try {
       const engines = await Engines.findAll();
@@ -138,9 +138,7 @@ module.exports = {
         } else {
           let typeOfPermits;
           if (req.userRol === "admin") {
-            return res
-              .status(200)
-              .send(engines);
+            return res.status(200).send(engines);
           } else {
             typeOfPermits = await TypeOfPermits.findOne({
               where: {
@@ -488,6 +486,9 @@ module.exports = {
     }
   },
 
+  /*
+   *  Notificaciones desde el motor de Traduccion
+   */
   notification: async (req, res) => {
     if (req.body.fileid && req.body.data) {
       let type = _.lowerCase(getStatus(req.body.data.status));
@@ -515,48 +516,9 @@ module.exports = {
           where: { fileId: req.body.fileid }
         });
 
-        let noty = {
-          type: type,
-          data: {
-            fileId: req.body.fileid,
-            fileName: process.fileName,
-            userId: process.UserId,
-            email: process.email
-          }
-        };
-
-        let notification = await Notification.findOrCreate({
-          where: {
-            data: {
-              fileId: req.body.fileid
-            }
-          },
-          defaults: noty
-        });
         let email = process.email;
         let freeUser = process.email ? true : false;
-        if (notification[1]) {
-          if (process.UserId) {
-            let user = await User.findOne({ where: { id: process.UserId } });
-            email = user.email;
-            user.addNotifications(notification[0]);
-          }
-        } else {
-          await Notification.update(
-            {
-              type: type
-            },
-            {
-              where: {
-                data: {
-                  fileId: req.body.fileid
-                }
-              }
-            }
-          );
-        }
 
-        socketApi.sendNotificationDashboard(noty);
         const status = parseInt(req.body.data.status);
 
         if (status === 100) {
@@ -577,23 +539,14 @@ module.exports = {
                 }
               }
             );
-
-            noty = {
-              type: type,
-              data: {
-                fileId: req.body.fileid,
-                fileName: process.fileName,
-                userId: process.UserId,
-                email: process.email
-              }
-            };
-            socketApi.sendNotificationDashboard(noty);
           }
         }
 
         if (email) {
+          //Envio de Email Usuario Casual
           mailer.main(email, type, process.uuid, freeUser);
         } else {
+          //Envio de Email Usuario Registrado
           let user = await User.findOne({ where: { id: process.UserId } });
           let email = user.email;
           mailer.main(email, type, process.uuid, freeUser);
@@ -606,7 +559,6 @@ module.exports = {
           }
         });
       } catch (err) {
-        console.error(err);
         return res.status(500).send({
           error: err
         });
