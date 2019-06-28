@@ -512,6 +512,25 @@ module.exports = {
           }
         });
 
+        let noty = {
+          type: type,
+          data: {
+            fileId: req.body.fileid,
+            fileName: process.fileName,
+            userId: process.UserId,
+            email: process.email
+          }
+        };
+
+         await Notification.findOrCreate({
+          where: {
+            data: {
+              fileId: req.body.fileid
+            }
+          },
+          defaults: noty
+        });
+
         let process = await Process.findOne({
           where: { fileId: req.body.fileid }
         });
@@ -566,6 +585,30 @@ module.exports = {
     } else {
       return res.status(400).send({
         error: "Bad Request"
+      });
+    }
+  },
+
+  clearNotification: async (req, res) => {
+    try {
+      const user = await User.findOne({
+        where: {
+          id: req.userId
+        },
+        include: [
+          {
+            model: Notification
+          }
+        ]
+      });
+
+      user.Notifications.forEach(async notification => {
+        await notification.destroy();
+      });
+      return res.status(200).send({ data: "ok" });
+    } catch (error) {
+      return res.status(500).send({
+        error: error
       });
     }
   }

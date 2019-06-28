@@ -7,6 +7,7 @@ let mailer = require("./../util/mailer");
 let checkDuplicateUserNameOrEmail = verifySignUp.checkDuplicateUserNameOrEmail;
 let verifyToken = verifyJwtToken.verifyToken;
 let isAdmin = verifyJwtToken.isAdmin;
+let isUser = verifyJwtToken.isUser;
 
 let auth = controllers.auth;
 let configuration = controllers.configuration;
@@ -24,6 +25,11 @@ router.get("/api/dashboard", dashboard.get);
 router.get("/api/engines", process.getExternalEngines);
 router.get("/api/engines/load", [verifyToken, isAdmin], process.load);
 router.post("/api/notification", process.notification);
+router.delete(
+  "/api/notification",
+  [verifyToken, isUser],
+  process.clearNotification
+);
 router.post("/api/process_file", process.sendFileToExternalProcess);
 
 //AUTH
