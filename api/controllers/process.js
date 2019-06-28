@@ -512,6 +512,13 @@ module.exports = {
           }
         });
 
+        let process = await Process.findOne({
+          where: { fileId: req.body.fileid }
+        });
+
+        let email = process.email;
+        let freeUser = process.email ? true : false;
+
         let noty = {
           type: type,
           data: {
@@ -530,8 +537,7 @@ module.exports = {
           },
           defaults: noty
         });
-        let email = process.email;
-        let freeUser = process.email ? true : false;
+
         if (notification[1]) {
           if (process.UserId) {
             let user = await User.findOne({ where: { id: process.UserId } });
@@ -553,12 +559,6 @@ module.exports = {
           );
         }
 
-        let process = await Process.findOne({
-          where: { fileId: req.body.fileid }
-        });
-
-        let email = process.email;
-        let freeUser = process.email ? true : false;
 
         const status = parseInt(req.body.data.status);
 
