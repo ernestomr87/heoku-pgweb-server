@@ -522,7 +522,7 @@ module.exports = {
           }
         };
 
-         await Notification.findOrCreate({
+        let notification = await Notification.findOrCreate({
           where: {
             data: {
               fileId: req.body.fileid
@@ -530,6 +530,28 @@ module.exports = {
           },
           defaults: noty
         });
+        let email = process.email;
+        let freeUser = process.email ? true : false;
+        if (notification[1]) {
+          if (process.UserId) {
+            let user = await User.findOne({ where: { id: process.UserId } });
+            email = user.email;
+            user.addNotifications(notification[0]);
+          }
+        } else {
+          await Notification.update(
+            {
+              type: type
+            },
+            {
+              where: {
+                data: {
+                  fileId: req.body.fileid
+                }
+              }
+            }
+          );
+        }
 
         let process = await Process.findOne({
           where: { fileId: req.body.fileid }
