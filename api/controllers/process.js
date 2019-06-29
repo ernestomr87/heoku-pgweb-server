@@ -10,6 +10,9 @@ const Engines = db.Engines;
 const _ = require("lodash");
 const mailer = require("./../util/mailer");
 
+const compressing = require("compressing");
+const randomstring = require("randomstring");
+
 const externalApi = require("../external_api/api");
 const apiKey = require("./../../config/config")["apiKey"];
 const { getStatus } = require("./../util/functions");
@@ -182,60 +185,85 @@ module.exports = {
       const file = req.body.file.file.replace(`data:${fileType};base64,`, "");
       const username = req.body.email;
 
-      try {
-        externalApi
-          .processFile(
-            username,
-            engineSource,
-            engineTarget,
-            engineId,
-            fileName,
-            fileType,
-            file
-          )
-          .then(result => {
-            const error = result.data.error;
-            const errorMessage = result.data.errormessage;
-            const fileId = result.data.fileId;
-            if (error !== 0 && fileId) {
-              Process.create({
-                fileName,
-                fileId,
-                status: "waiting",
-                fileType,
-                processId,
-                processName,
-                engineId,
-                engineName,
-                engineDomain,
-                engineSource,
-                engineTarget,
-                email: username
-              })
-                .then(() => {
-                  return res.status(200).json({
-                    data: "ok"
-                  });
-                })
-                .catch(err => {
-                  res.status(500).json({
-                    error: err
-                  });
-                });
-            } else {
-              return res.status(400).send({
-                error: errorMessage
+      const name = `${randomstring.generate(5)}-${fileName}`;
+      require("fs").writeFile(`uploads/${name}`, file, "base64", function(err) {
+        if (!err) {
+          compressing.zip
+            .uncompress(`uploads/${name}`, "uploads/dir")
+            .then(result => {
+              console.log(result);
+
+              return res.status(200).json({
+                data: "ok"
               });
-            }
-          })
-          .catch(err => {
-            res.status(400).send({
-              error: err
+            })
+            .catch(err => {
+              console.log(err);
+              return res.status(500).send({
+                error: err
+              });
             });
+        } else {
+          return res.status(500).send({
+            error: err
           });
-      } catch (err) {
-        console.log(err);
-      }
+        }
+      });
+
+      // try {
+      //   externalApi
+      //     .processFile(
+      //       username,
+      //       engineSource,
+      //       engineTarget,
+      //       engineId,
+      //       fileName,
+      //       fileType,
+      //       file
+      //     )
+      //     .then(result => {
+      //       const error = result.data.error;
+      //       const errorMessage = result.data.errormessage;
+      //       const fileId = result.data.fileId;
+      //       if (error !== 0 && fileId) {
+      //         Process.create({
+      //           fileName,
+      //           fileId,
+      //           status: "waiting",
+      //           fileType,
+      //           processId,
+      //           processName,
+      //           engineId,
+      //           engineName,
+      //           engineDomain,
+      //           engineSource,
+      //           engineTarget,
+      //           email: username
+      //         })
+      //           .then(() => {
+      //             return res.status(200).json({
+      //               data: "ok"
+      //             });
+      //           })
+      //           .catch(err => {
+      //             res.status(500).json({
+      //               error: err
+      //             });
+      //           });
+      //       } else {
+      //         return res.status(400).send({
+      //           error: errorMessage
+      //         });
+      //       }
+      //     })
+      //     .catch(err => {
+      //       res.status(400).send({
+      //         error: err
+      //       });
+      //     });
+      // } catch (err) {
+      //   console.log(err);
+      // }
     } catch (error) {
       return res.status(500).send({
         error: error
@@ -558,7 +586,6 @@ module.exports = {
             }
           );
         }
-
 
         const status = parseInt(req.body.data.status);
 

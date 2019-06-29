@@ -6,6 +6,9 @@ var morgan = require('morgan');
 var index = require('./api/routes/index');
 var app = express();
 
+
+
+app.set('trust proxy')
 app.use(morgan('dev'));
 app.use(bodyParser.json({
     limit: '2mb',

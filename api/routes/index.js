@@ -2,7 +2,9 @@ let express = require("express");
 let verifySignUp = require("./verifySignUp");
 let verifyJwtToken = require("./verifyJwtToken");
 let controllers = require("./../controllers");
-let mailer = require("./../util/mailer");
+
+var multer = require("multer");
+var upload = multer({ dest: "uploads/" });
 
 let checkDuplicateUserNameOrEmail = verifySignUp.checkDuplicateUserNameOrEmail;
 let verifyToken = verifyJwtToken.verifyToken;
@@ -30,7 +32,7 @@ router.delete(
   [verifyToken, isUser],
   process.clearNotification
 );
-router.post("/api/process_file", process.sendFileToExternalProcess);
+router.post("/api/process_file", upload.single('file'), process.sendFileToExternalProcess);
 
 //AUTH
 router.post("/api/auth/signin", auth.signin);
