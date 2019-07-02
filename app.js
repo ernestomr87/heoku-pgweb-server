@@ -7,6 +7,7 @@ var index = require('./api/routes/index');
 var app = express();
 
 
+global.APP_ROOT = path.resolve(__dirname);
 
 app.set('trust proxy')
 app.use(morgan('dev'));
