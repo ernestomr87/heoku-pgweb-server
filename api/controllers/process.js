@@ -1,6 +1,9 @@
 ("use strict");
 const uuidv4 = require("uuid/v4");
-var path = require("path");
+const path = require("path");
+
+const fs = require("fs");
+const util = require("util");
 
 const db = require("./../../db/models");
 const User = db.User;
@@ -17,6 +20,9 @@ const randomstring = require("randomstring");
 const externalApi = require("../external_api/api");
 const apiKey = require("./../../config/config")["apiKey"];
 const { getStatus } = require("./../util/functions");
+
+const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
 
 const filterEngines = (engines, types) => {
   let newArrays = [];
@@ -37,10 +43,25 @@ const filterEngines = (engines, types) => {
   return newArrays;
 };
 
+var extTypes = {
+  docx: "application/msword",
+  xlsx: "application/vnd.ms-excel",
+  pptx: "application/vnd.ms-powerpoint",
+  odt: "application/vnd.oasis.opendocument.text",
+  zip: "application/zip"
+};
+const getExt = path => {
+  var i = path.lastIndexOf(".");
+  return i < 0 ? "" : path.substr(i + 1);
+};
+const getContentType = ext => {
+  return extTypes[ext.toLowerCase()] || "application/octet-stream";
+};
+
 var walkSync = function(dir, filelist) {
-  var fs = fs || require("fs"),
-    files = fs.readdirSync(dir);
+  var files = fs.readdirSync(dir);
   filelist = filelist || [];
+
   files.forEach(function(file) {
     if (fs.statSync(dir + "/" + file).isDirectory()) {
       filelist = walkSync(dir + file + "/", filelist);
@@ -48,11 +69,11 @@ var walkSync = function(dir, filelist) {
       var bitmap = fs.readFileSync(dir + "/" + file);
       // convert binary data to base64 encoded string
       const base64 = new Buffer(bitmap).toString("base64");
-      let aux={
-        fileName,
-        fileType,
-        file:base64
-      }
+      let aux = {
+        fileName: file,
+        fileType: getContentType(getExt(file)),
+        file: base64
+      };
       filelist.push(aux);
     }
   });
@@ -192,7 +213,7 @@ module.exports = {
     }
   },
 
-  sendFileToExternalProcess: (req, res) => {
+  sendFileToExternalProcess: async (req, res) => {
     try {
       const processId = req.body.process.id;
       const processName = req.body.process.name;
@@ -266,36 +287,19 @@ module.exports = {
         }
       } else {
         const name = `${randomstring.generate(5)}-${fileName}`;
-        require("fs").writeFile(`uploads/${name}`, file, "base64", function(
-          err
-        ) {
-          if (!err) {
-            compressing.zip
-              .uncompress(`uploads/${name}`, `uploads/dir/${name}`)
-              .then(() => {
-                let fileList = walkSync(
-                  `${path.join(global.APP_ROOT, "/uploads/dir/" + name + "/")}`,
-                  []
-                );
 
-                console.log(fileList);
+        await writeFile(`uploads/${name}`, file, "base64");
 
-                return res.status(200).json({
-                  data: "ok"
-                });
-              })
-              .catch(err => {
-                console.log(err);
-                return res.status(500).send({
-                  error: err
-                });
-              });
-          } else {
-            return res.status(500).send({
-              error: err
-            });
-          }
-        });
+        await compressing.zip.uncompress(
+          `uploads/${name}`,
+          `uploads/dir/${name}`
+        );
+
+        let fileList = await walkSync(
+          `${path.join(global.APP_ROOT, "/uploads/dir/" + name + "/")}`,
+          []
+        );
+        console.log(fileList);
       }
     } catch (error) {
       return res.status(500).send({
