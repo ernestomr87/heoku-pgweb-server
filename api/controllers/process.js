@@ -3,6 +3,7 @@ const uuidv4 = require("uuid/v4");
 const path = require("path");
 
 const fs = require("fs");
+const rimraf = require("rimraf");
 const util = require("util");
 
 const db = require("./../../db/models");
@@ -11,7 +12,11 @@ const Process = db.Process;
 const TypeOfPermits = db.TypeOfPermits;
 const Notification = db.Notification;
 const Engines = db.Engines;
+const Group = db.Group;
+
 const _ = require("lodash");
+const map = require("async/map");
+
 const mailer = require("./../util/mailer");
 
 const compressing = require("compressing");
@@ -21,7 +26,6 @@ const externalApi = require("../external_api/api");
 const apiKey = require("./../../config/config")["apiKey"];
 const { getStatus } = require("./../util/functions");
 
-const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 
 const filterEngines = (engines, types) => {
@@ -58,23 +62,31 @@ const getContentType = ext => {
   return extTypes[ext.toLowerCase()] || "application/octet-stream";
 };
 
-var walkSync = function(dir, filelist) {
+var walkSync = (dir, filelist) => {
   var files = fs.readdirSync(dir);
   filelist = filelist || [];
+  let count = 0;
 
   files.forEach(function(file) {
     if (fs.statSync(dir + "/" + file).isDirectory()) {
       filelist = walkSync(dir + file + "/", filelist);
     } else {
-      var bitmap = fs.readFileSync(dir + "/" + file);
-      // convert binary data to base64 encoded string
-      const base64 = new Buffer(bitmap).toString("base64");
-      let aux = {
-        fileName: file,
-        fileType: getContentType(getExt(file)),
-        file: base64
-      };
-      filelist.push(aux);
+      var extension = file.substr(file.lastIndexOf(".") + 1);
+      if (/(docx|xlsx|pptx|odt)$/gi.test(extension)) {
+        if (file[0] !== "." && count <= 50) {
+          var bitmap = fs.readFileSync(dir + "/" + file);
+          // convert binary data to base64 encoded string
+          const base64 = new Buffer(bitmap).toString("base64");
+          let aux = {
+            fileName: file,
+            fileType: getContentType(getExt(file)),
+            file: base64
+          };
+
+          filelist.push(aux);
+          count++;
+        }
+      }
     }
   });
   return filelist;
@@ -154,10 +166,11 @@ module.exports = {
               error: err
             });
           });
+      } else {
+        res.status(400).send({
+          error: engines.data.error || "No data"
+        });
       }
-      res.status(400).send({
-        error: engines.data.error || "No data"
-      });
     } catch (err) {
       res.status(500).send({
         error: err
@@ -231,75 +244,160 @@ module.exports = {
 
       var extension = fileName.substr(fileName.lastIndexOf(".") + 1);
       if (!/(zip)$/gi.test(extension)) {
-        try {
-          externalApi
-            .processFile(
-              username,
-              engineSource,
-              engineTarget,
-              engineId,
-              fileName,
-              fileType,
-              file
-            )
-            .then(result => {
-              const error = result.data.error;
-              const errorMessage = result.data.errormessage;
-              const fileId = result.data.fileId;
-              if (error !== 0 && fileId) {
-                Process.create({
-                  fileName,
-                  fileId,
-                  status: "waiting",
-                  fileType,
-                  processId,
-                  processName,
-                  engineId,
-                  engineName,
-                  engineDomain,
-                  engineSource,
-                  engineTarget,
-                  email: username
-                })
-                  .then(() => {
-                    return res.status(200).json({
-                      data: "ok"
-                    });
-                  })
-                  .catch(err => {
-                    res.status(500).json({
-                      error: err
-                    });
+        externalApi
+          .processFile(
+            username,
+            engineSource,
+            engineTarget,
+            engineId,
+            fileName,
+            fileType,
+            file
+          )
+          .then(result => {
+            const error = result.data.error;
+            const errorMessage = result.data.errormessage;
+            const fileId = result.data.fileId;
+            if (error !== 0 && fileId) {
+              Process.create({
+                fileName,
+                fileId,
+                status: "waiting",
+                fileType,
+                processId,
+                processName,
+                engineId,
+                engineName,
+                engineDomain,
+                engineSource,
+                engineTarget,
+                email: username
+              })
+                .then(() => {
+                  return res.status(200).json({
+                    data: "ok"
                   });
-              } else {
-                return res.status(400).send({
-                  error: errorMessage
+                })
+                .catch(err => {
+                  res.status(500).json({
+                    error: err
+                  });
                 });
-              }
-            })
-            .catch(err => {
-              res.status(400).send({
-                error: err
+            } else {
+              return res.status(400).send({
+                error: errorMessage
               });
+            }
+          })
+          .catch(err => {
+            res.status(400).send({
+              error: err
             });
-        } catch (err) {
-          console.log(err);
-        }
+          });
       } else {
         const name = `${randomstring.generate(5)}-${fileName}`;
 
-        await writeFile(`uploads/${name}`, file, "base64");
+        fs.mkdirSync(`uploads/${name}`, { recursive: true });
+        await writeFile(`uploads/${name}/${name}`, file, "base64");
 
         await compressing.zip.uncompress(
-          `uploads/${name}`,
-          `uploads/dir/${name}`
+          `uploads/${name}/${name}`,
+          `uploads/${name}`
         );
 
         let fileList = await walkSync(
-          `${path.join(global.APP_ROOT, "/uploads/dir/" + name + "/")}`,
+          `${path.join(global.APP_ROOT, `uploads/${name}/`)}`,
           []
         );
-        console.log(fileList);
+
+        await rimraf(`${path.join(global.APP_ROOT, `uploads/${name}`)}`, () => {
+          Group.create({
+            name: name,
+            total: 0,
+            complete: 0
+          })
+            .then(group => {
+              map(
+                fileList,
+                (item, cbm) => {
+                  externalApi
+                    .processFile(
+                      username,
+                      engineSource,
+                      engineTarget,
+                      engineId,
+                      item.fileName,
+                      item.fileType,
+                      item.file
+                    )
+                    .then(result => {
+                      const error = result.data.error;
+                      const errorMessage = result.data.errormessage;
+                      const fileId = result.data.fileId;
+                      if (error !== 0 && fileId) {
+                        Process.create({
+                          status: "waiting",
+                          fileName: item.fileName,
+                          fileId,
+                          fileType: item.fileType,
+                          processId,
+                          processName,
+                          engineId,
+                          engineName,
+                          engineDomain,
+                          engineSource,
+                          engineTarget,
+                          email: username
+                        })
+                          .then(doc => {
+                            doc.setGroup(group);
+                            cbm(null, doc);
+                          })
+                          .catch(err => {
+                            cbm(err, null);
+                          });
+                      } else {
+                        cbm(errorMessage, null);
+                      }
+                    })
+                    .catch(err => {
+                      cbm(err, null);
+                    });
+                },
+                function(err, results) {
+                  if (err) {
+                    return res.status(500).send({
+                      error: err
+                    });
+                  } else {
+                    Group.update(
+                      {
+                        total: results.length
+                      },
+                      {
+                        where: { id: group.id }
+                      }
+                    )
+                      .then(() => {
+                        return res.status(200).json({
+                          data: "ok"
+                        });
+                      })
+                      .catch(err => {
+                        return res.status(500).send({
+                          error: err
+                        });
+                      });
+                  }
+                }
+              );
+            })
+            .catch(err => {
+              return res.status(500).send({
+                error: err
+              });
+            });
+        });
       }
     } catch (error) {
       return res.status(500).send({
@@ -308,7 +406,7 @@ module.exports = {
     }
   },
 
-  processFile: (req, res) => {
+  processFile: async (req, res) => {
     try {
       const processId = req.body.process.id;
       const processName = req.body.process.name;
@@ -324,7 +422,8 @@ module.exports = {
       const file = req.body.file.file.replace(`data:${fileType};base64,`, "");
       const username = req.userEmail;
 
-      try {
+      var extension = fileName.substr(fileName.lastIndexOf(".") + 1);
+      if (!/(zip)$/gi.test(extension)) {
         externalApi
           .processFile(
             username,
@@ -350,7 +449,7 @@ module.exports = {
                     Process.create({
                       fileName,
                       fileId,
-                      status: 0,
+                      status: "waiting",
                       fileType,
                       processId,
                       processName,
@@ -404,8 +503,136 @@ module.exports = {
               error: err
             });
           });
-      } catch (err) {
-        console.log(err);
+      } else {
+        const name = `${randomstring.generate(5)}-${fileName}`;
+
+        fs.mkdirSync(`uploads/${name}`, { recursive: true });
+        await writeFile(`uploads/${name}/${name}`, file, "base64");
+
+        await compressing.zip.uncompress(
+          `uploads/${name}/${name}`,
+          `uploads/${name}`
+        );
+
+        let fileList = await walkSync(
+          `${path.join(global.APP_ROOT, `uploads/${name}/`)}`,
+          []
+        );
+
+        await rimraf(`${path.join(global.APP_ROOT, `uploads/${name}`)}`, () => {
+          Group.create({
+            name: name,
+            total: 0,
+            complete: 0
+          })
+            .then(group => {
+              map(
+                fileList,
+                (item, cbm) => {
+                  externalApi
+                    .processFile(
+                      username,
+                      engineSource,
+                      engineTarget,
+                      engineId,
+                      item.fileName,
+                      item.fileType,
+                      item.file
+                    )
+                    .then(result => {
+                      const error = result.data.error;
+                      const errorMessage = result.data.errormessage;
+                      const fileId = result.data.fileId;
+                      if (error !== 0 && fileId) {
+                        if (req.userId) {
+                          User.findOne({
+                            where: {
+                              id: req.userId
+                            }
+                          })
+                            .then(user => {
+                              Process.create({
+                                status: "waiting",
+                                fileName: item.fileName,
+                                fileId,
+                                fileType: item.fileType,
+                                processId,
+                                processName,
+                                engineId,
+                                engineName,
+                                engineDomain,
+                                engineSource,
+                                engineTarget,
+                                email: username
+                              })
+                                .then(process => {
+                                  process.setGroup(group);
+                                  user
+                                    .addProcess(process)
+                                    .then(function() {
+                                      cbm(null, process);
+                                    })
+                                    .catch(err => {
+                                      cbm(err, null);
+                                    });
+                                })
+                                .catch(err => {
+                                  cbm(err, null);
+                                });
+                            })
+                            .catch(err => {
+                              res.status(500).json({
+                                description: "Can not access User Page",
+                                error: err
+                              });
+                            });
+                        } else {
+                          return res.status(200).json({
+                            data: "ok"
+                          });
+                        }
+                      } else {
+                        cbm(errorMessage, null);
+                      }
+                    })
+                    .catch(err => {
+                      cbm(err, null);
+                    });
+                },
+                function(err, results) {
+                  if (err) {
+                    return res.status(500).send({
+                      error: err
+                    });
+                  } else {
+                    Group.update(
+                      {
+                        total: results.length
+                      },
+                      {
+                        where: { id: group.id }
+                      }
+                    )
+                      .then(() => {
+                        return res.status(200).json({
+                          data: "ok"
+                        });
+                      })
+                      .catch(err => {
+                        return res.status(500).send({
+                          error: err
+                        });
+                      });
+                  }
+                }
+              );
+            })
+            .catch(err => {
+              return res.status(500).send({
+                error: err
+              });
+            });
+        });
       }
     } catch (error) {
       return res.status(400).send({
@@ -414,7 +641,7 @@ module.exports = {
     }
   },
 
-  quoteFile: (req, res) => {
+  quoteFile: async (req, res) => {
     try {
       const processId = req.body.process.id;
       const processName = req.body.process.name;
@@ -430,7 +657,8 @@ module.exports = {
       const file = req.body.file.file.replace(`data:${fileType};base64,`, "");
       const username = req.userEmail;
 
-      try {
+      var extension = fileName.substr(fileName.lastIndexOf(".") + 1);
+      if (!/(zip)$/gi.test(extension)) {
         externalApi
           .quoteFile(
             username,
@@ -456,7 +684,7 @@ module.exports = {
                     Process.create({
                       fileName,
                       fileId,
-                      status: 0,
+                      status: "waiting",
                       fileType,
                       processId,
                       processName,
@@ -510,8 +738,136 @@ module.exports = {
               error: err
             });
           });
-      } catch (err) {
-        console.log(err);
+      } else {
+        const name = `${randomstring.generate(5)}-${fileName}`;
+
+        fs.mkdirSync(`uploads/${name}`, { recursive: true });
+        await writeFile(`uploads/${name}/${name}`, file, "base64");
+
+        await compressing.zip.uncompress(
+          `uploads/${name}/${name}`,
+          `uploads/${name}`
+        );
+
+        let fileList = await walkSync(
+          `${path.join(global.APP_ROOT, `uploads/${name}/`)}`,
+          []
+        );
+
+        await rimraf(`${path.join(global.APP_ROOT, `uploads/${name}`)}`, () => {
+          Group.create({
+            name: name,
+            total: 0,
+            complete: 0
+          })
+            .then(group => {
+              map(
+                fileList,
+                (item, cbm) => {
+                  externalApi
+                    .quoteFile(
+                      username,
+                      engineSource,
+                      engineTarget,
+                      engineId,
+                      item.fileName,
+                      item.fileType,
+                      item.file
+                    )
+                    .then(result => {
+                      const error = result.data.error;
+                      const errorMessage = result.data.errormessage;
+                      const fileId = result.data.fileId;
+                      if (error !== 0 && fileId) {
+                        if (req.userId) {
+                          User.findOne({
+                            where: {
+                              id: req.userId
+                            }
+                          })
+                            .then(user => {
+                              Process.create({
+                                status: "waiting",
+                                fileName: item.fileName,
+                                fileId,
+                                fileType: item.fileType,
+                                processId,
+                                processName,
+                                engineId,
+                                engineName,
+                                engineDomain,
+                                engineSource,
+                                engineTarget,
+                                email: username
+                              })
+                                .then(process => {
+                                  process.setGroup(group);
+                                  user
+                                    .addProcess(process)
+                                    .then(function() {
+                                      cbm(null, process);
+                                    })
+                                    .catch(err => {
+                                      cbm(err, null);
+                                    });
+                                })
+                                .catch(err => {
+                                  cbm(err, null);
+                                });
+                            })
+                            .catch(err => {
+                              res.status(500).json({
+                                description: "Can not access User Page",
+                                error: err
+                              });
+                            });
+                        } else {
+                          return res.status(200).json({
+                            data: "ok"
+                          });
+                        }
+                      } else {
+                        cbm(errorMessage, null);
+                      }
+                    })
+                    .catch(err => {
+                      cbm(err, null);
+                    });
+                },
+                function(err, results) {
+                  if (err) {
+                    return res.status(500).send({
+                      error: err
+                    });
+                  } else {
+                    Group.update(
+                      {
+                        total: results.length
+                      },
+                      {
+                        where: { id: group.id }
+                      }
+                    )
+                      .then(() => {
+                        return res.status(200).json({
+                          data: "ok"
+                        });
+                      })
+                      .catch(err => {
+                        return res.status(500).send({
+                          error: err
+                        });
+                      });
+                  }
+                }
+              );
+            })
+            .catch(err => {
+              return res.status(500).send({
+                error: err
+              });
+            });
+        });
       }
     } catch (error) {
       return res.status(400).send({

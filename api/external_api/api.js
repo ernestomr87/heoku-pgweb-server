@@ -8,11 +8,7 @@ module.exports = {
     console.log(`${pageanApiAddress}describeengines/${apiKey}`);
     return axios({
       method: "get",
-      url: `${pageanApiAddress}describeengines/${apiKey}`,
-      proxy: {
-        host: "192.168.0.2",
-        port: 3128
-      }
+      url: `${pageanApiAddress}describeengines/${apiKey}`
     });
   },
 
@@ -37,10 +33,6 @@ module.exports = {
         fileName,
         fileType,
         file
-      },
-      proxy: {
-        host: "192.168.0.2",
-        port: 3128
       }
     });
   },
@@ -53,10 +45,6 @@ module.exports = {
         fileId,
         processOptionId,
         apikey: apiKey
-      },
-      proxy: {
-        host: "192.168.0.2",
-        port: 3128
       }
     });
   },
@@ -82,10 +70,6 @@ module.exports = {
         fileName,
         fileType,
         file
-      },
-      proxy: {
-        host: "192.168.0.2",
-        port: 3128
       }
     });
   },
@@ -97,10 +81,6 @@ module.exports = {
       data: {
         apikey: apiKey,
         guids
-      },
-      proxy: {
-        host: "192.168.0.2",
-        port: 3128
       }
     });
   },
@@ -112,10 +92,6 @@ module.exports = {
       data: {
         apikey: apiKey,
         guid
-      },
-      proxy: {
-        host: "192.168.0.2",
-        port: 3128
       }
     });
   }
