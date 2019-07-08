@@ -32,7 +32,11 @@ router.delete(
   [verifyToken, isUser],
   process.clearNotification
 );
-router.post("/api/process_file", upload.single('file'), process.sendFileToExternalProcess);
+router.post(
+  "/api/process_file",
+  upload.single("file"),
+  process.sendFileToExternalProcess
+);
 
 //AUTH
 router.post("/api/auth/signin", auth.signin);
@@ -80,6 +84,9 @@ router.put("/api/users/password", [verifyToken], users.password);
 router.get("/api/configuration", configuration.getConfiguration);
 router.put("/api/paypal", configuration.setPaypal);
 router.put("/api/email", configuration.setEmailNotification);
+
+router.get("/api/pay", process.pay);
+router.put("/api/cancel", process.cancel);
 
 // router.post('/api/email', mailer.main('ernestomr87@gmail.com',''));
 
