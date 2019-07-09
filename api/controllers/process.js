@@ -313,6 +313,8 @@ module.exports = {
 
   processFile: async (req, res) => {
     try {
+      const username = req.userEmail;
+
       const processId = req.body.process.id;
       const processName = req.body.process.name;
 
@@ -322,223 +324,90 @@ module.exports = {
       const engineSource = req.body.engine.source;
       const engineTarget = req.body.engine.target;
 
-      const fileName = req.body.file.fileName;
-      const fileType = req.body.file.fileType;
-      const file = req.body.file.file.replace(`data:${fileType};base64,`, "");
-      const username = req.userEmail;
+      const files = req.body.files;
 
-      var extension = fileName.substr(fileName.lastIndexOf(".") + 1);
-      if (!/(zip)$/gi.test(extension)) {
-        externalApi
-          .processFile(
-            username,
-            engineSource,
-            engineTarget,
-            engineId,
-            fileName,
-            fileType,
-            file
-          )
-          .then(result => {
-            const error = result.data.error;
-            const errorMessage = result.data.errormessage;
-            const fileId = result.data.fileId;
-            if (error !== 0 && fileId) {
-              if (req.userId) {
-                User.findOne({
-                  where: {
-                    id: req.userId
-                  }
-                })
-                  .then(user => {
-                    Process.create({
-                      fileName,
-                      fileId,
-                      status: "waiting",
-                      fileType,
-                      processId,
-                      processName,
-                      engineId,
-                      engineName,
-                      engineDomain,
-                      engineSource,
-                      engineTarget
-                    })
-                      .then(process => {
-                        user
-                          .addProcess(process)
-                          .then(function() {
-                            return res.status(200).json({
-                              data: "ok"
-                            });
-                          })
-                          .catch(err => {
-                            res.status(500).json({
-                              description: "Can not access User Page",
-                              error: err
-                            });
-                          });
-                      })
-                      .catch(err => {
-                        res.status(500).json({
-                          description: "Can not access User Page",
-                          error: err
-                        });
-                      });
+      map(
+        files,
+        (item, cbm) => {
+          const fileName = item.fileName;
+          const fileType = item.fileType;
+          const file = item.file.replace(`data:${fileType};base64,`, "");
+
+          externalApi
+            .processFile(
+              username,
+              engineSource,
+              engineTarget,
+              engineId,
+              fileName,
+              fileType,
+              file
+            )
+            .then(result => {
+              const error = result.data.error;
+              const errorMessage = result.data.errormessage;
+              const fileId = result.data.fileId;
+              if (error !== 0 && fileId) {
+                if (req.userId) {
+                  User.findOne({
+                    where: {
+                      id: req.userId
+                    }
                   })
-                  .catch(err => {
-                    res.status(500).json({
-                      description: "Can not access User Page",
-                      error: err
-                    });
-                  });
-              } else {
-                return res.status(200).json({
-                  data: "ok"
-                });
-              }
-            } else {
-              return res.status(400).send({
-                error: errorMessage
-              });
-            }
-          })
-          .catch(err => {
-            res.status(400).send({
-              error: err
-            });
-          });
-      } else {
-        const name = `${randomstring.generate(5)}-${fileName}`;
-
-        fs.mkdirSync(`uploads/${name}`, { recursive: true });
-        await writeFile(`uploads/${name}/${name}`, file, "base64");
-
-        await compressing.zip.uncompress(
-          `uploads/${name}/${name}`,
-          `uploads/${name}`
-        );
-
-        let fileList = await walkSync(
-          `${path.join(global.APP_ROOT, `uploads/${name}/`)}`,
-          []
-        );
-
-        await rimraf(`${path.join(global.APP_ROOT, `uploads/${name}`)}`, () => {
-          Group.create({
-            name: name,
-            total: 0,
-            complete: 0
-          })
-            .then(group => {
-              map(
-                fileList,
-                (item, cbm) => {
-                  externalApi
-                    .processFile(
-                      username,
-                      engineSource,
-                      engineTarget,
-                      engineId,
-                      item.fileName,
-                      item.fileType,
-                      item.file
-                    )
-                    .then(result => {
-                      const error = result.data.error;
-                      const errorMessage = result.data.errormessage;
-                      const fileId = result.data.fileId;
-                      if (error !== 0 && fileId) {
-                        if (req.userId) {
-                          User.findOne({
-                            where: {
-                              id: req.userId
-                            }
-                          })
-                            .then(user => {
-                              Process.create({
-                                status: "waiting",
-                                fileName: item.fileName,
-                                fileId,
-                                fileType: item.fileType,
-                                processId,
-                                processName,
-                                engineId,
-                                engineName,
-                                engineDomain,
-                                engineSource,
-                                engineTarget,
-                                email: username
-                              })
-                                .then(process => {
-                                  process.setGroup(group);
-                                  user
-                                    .addProcess(process)
-                                    .then(function() {
-                                      cbm(null, process);
-                                    })
-                                    .catch(err => {
-                                      cbm(err, null);
-                                    });
-                                })
-                                .catch(err => {
-                                  cbm(err, null);
-                                });
+                    .then(user => {
+                      Process.create({
+                        fileName,
+                        fileId,
+                        status: "waiting",
+                        fileType,
+                        processId,
+                        processName,
+                        engineId,
+                        engineName,
+                        engineDomain,
+                        engineSource,
+                        engineTarget
+                      })
+                        .then(process => {
+                          user
+                            .addProcess(process)
+                            .then(function() {
+                              cbm(null, true);
                             })
                             .catch(err => {
-                              res.status(500).json({
-                                description: "Can not access User Page",
-                                error: err
-                              });
+                              cbm(err, null);
                             });
-                        } else {
-                          return res.status(200).json({
-                            data: "ok"
-                          });
-                        }
-                      } else {
-                        cbm(errorMessage, null);
-                      }
+                        })
+                        .catch(err => {
+                          cbm(err, null);
+                        });
                     })
                     .catch(err => {
                       cbm(err, null);
                     });
-                },
-                function(err, results) {
-                  if (err) {
-                    return res.status(500).send({
-                      error: err
-                    });
-                  } else {
-                    Group.update(
-                      {
-                        total: results.length
-                      },
-                      {
-                        where: { id: group.id }
-                      }
-                    )
-                      .then(() => {
-                        return res.status(200).json({
-                          data: "ok"
-                        });
-                      })
-                      .catch(err => {
-                        return res.status(500).send({
-                          error: err
-                        });
-                      });
-                  }
+                } else {
+                  cbm(null, true);
                 }
-              );
+              } else {
+                cbm(errorMessage, null);
+              }
             })
             .catch(err => {
-              return res.status(500).send({
-                error: err
-              });
+              cbm(err, null);
             });
-        });
-      }
+        },
+        err => {
+          if (err) {
+            return res.status(500).send({
+              error: error
+            });
+          } else {
+            return res.status(200).json({
+              data: "ok"
+            });
+          }
+        }
+      );
     } catch (error) {
       return res.status(400).send({
         error: error
