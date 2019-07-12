@@ -701,11 +701,13 @@ module.exports = {
   },
 
   pay: async (req, res) => {
-    paypal.pay(res);
+    paypal.pay(req, res);
   },
+
   cancel: async (req, res) => {
-    res.redirect("/");
+    res.redirect("http://localhost:3001/dashboard/process-services/cancel");
   },
+
   return: async (req, res) => {
     res.redirect("/");
   }

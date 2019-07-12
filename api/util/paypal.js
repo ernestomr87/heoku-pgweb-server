@@ -1,6 +1,6 @@
 var paypal = require("paypal-rest-sdk");
 
-const pay = async res => {
+const pay = async (req, res) => {
   paypal.configure({
     mode: "sandbox", //sandbox or live
     client_id:
@@ -15,8 +15,8 @@ const pay = async res => {
       payment_method: "paypal"
     },
     redirect_urls: {
-      return_url: "http://localhost:3001/api/return",
-      cancel_url: "http://localhost:3001/api/cancel"
+      return_url: "http://localhost:3000/api/return",
+      cancel_url: "http://localhost:3000/api/cancel"
     },
     transactions: [
       {
@@ -41,7 +41,12 @@ const pay = async res => {
 
   paypal.payment.create(create_payment_json, (error, transaction) => {
     if (error) {
-      throw error;
+      if(req.userId){
+        return res.redirect("");
+      }else{
+        return res.redirect("");
+      }
+      
     } else {
       var id = transaction.id;
       var links = transaction.links;
