@@ -85,8 +85,10 @@ router.get("/api/configuration", configuration.getConfiguration);
 router.put("/api/paypal", configuration.setPaypal);
 router.put("/api/email", configuration.setEmailNotification);
 
-router.post("/api/pay", process.pay);
-router.get("/api/cancel", process.cancel);
+//PAYMENTS
+router.post("/api/payment/pay", [verifyToken], process.pay);
+router.get("/api/payment/:uuid/:quote/return", process.return);
+router.get("/api/payment/:uuid/cancel", process.cancel);
 
 // router.post('/api/email', mailer.main('ernestomr87@gmail.com',''));
 

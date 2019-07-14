@@ -106,6 +106,7 @@ module.exports = {
 
       const process = await user.getProcesses({
         attributes: [
+          "uuid",
           "fileName",
           "fileId",
           "processId",
@@ -701,14 +702,23 @@ module.exports = {
   },
 
   pay: async (req, res) => {
-    paypal.pay(req, res);
+
+    
+    return paypal.pay(req, res);
   },
 
   cancel: async (req, res) => {
-    res.redirect("http://localhost:3001/dashboard/process-services/cancel");
+    const uuid = req.params.uuid;
+    if (!uuid) {
+      res.redirect(`http://localhost:3001/dashboard/404`);
+    } else {
+      res.redirect(
+        `http://localhost:3001/dashboard/process-services/${uuid}/cancel`
+      );
+    }
   },
 
   return: async (req, res) => {
-    res.redirect("/");
+    return paypal.execute(req, res);
   }
 };
