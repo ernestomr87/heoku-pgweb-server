@@ -5,15 +5,14 @@ let template = require("./emailTemplate");
 
 const db = require("./../../db/models");
 const Configuration = db.Configuration;
+const config = require("./../../config/config.json");
 
 let testAccount = {
-  user: "pgweb@pangeanic.com",
-  pass: "santac1ara"
+  user: config.mailer.user,
+  pass: config.mailer.pass
 };
 
 async function main(email, status, uuid, freeUser) {
-  console.log("-----------------------");
-  console.log(email, status, uuid, freeUser);
   let transporter = nodemailer.createTransport({
     host: "smtp.pangeanic.com",
     port: 587,

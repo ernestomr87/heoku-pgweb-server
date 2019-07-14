@@ -22,5 +22,10 @@
     "dialect": "mysql"
   },
   "apiKey": "cOrtesvalenc1anas",
-  "secret": "pangeamt-super-secret-key"
+  "secret": "pangeamt-super-secret-key",
+  "mailer": {
+    "user": "pgweb@pangeanic.com",
+    "pass": "santac1ara"
+  },
+  "allowedFiles": "docx|xlsx|pptx|pdf|odt|odp"
 }

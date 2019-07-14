@@ -1,10 +1,5 @@
 ("use strict");
 const uuidv4 = require("uuid/v4");
-const path = require("path");
-
-const fs = require("fs");
-const rimraf = require("rimraf");
-const util = require("util");
 
 const db = require("./../../db/models");
 const User = db.User;
@@ -12,7 +7,6 @@ const Process = db.Process;
 const TypeOfPermits = db.TypeOfPermits;
 const Notification = db.Notification;
 const Engines = db.Engines;
-const Group = db.Group;
 
 const _ = require("lodash");
 const map = require("async/map");
@@ -20,14 +14,10 @@ const map = require("async/map");
 const mailer = require("./../util/mailer");
 const paypal = require("./../util/paypal");
 
-const compressing = require("compressing");
-const randomstring = require("randomstring");
-
 const externalApi = require("../external_api/api");
 const apiKey = require("./../../config/config")["apiKey"];
+const allowedFiles = require("./../../config/config")["allowedFiles"];
 const { getStatus } = require("./../util/functions");
-
-const writeFile = util.promisify(fs.writeFile);
 
 const filterEngines = (engines, types) => {
   let newArrays = [];
@@ -46,53 +36,6 @@ const filterEngines = (engines, types) => {
     }
   }
   return newArrays;
-};
-
-var extTypes = {
-  docx: "application/msword",
-  xlsx: "application/vnd.ms-excel",
-  pptx: "application/vnd.ms-powerpoint",
-  odt: "application/vnd.oasis.opendocument.text",
-  zip: "application/zip"
-};
-
-const getExt = path => {
-  var i = path.lastIndexOf(".");
-  return i < 0 ? "" : path.substr(i + 1);
-};
-
-const getContentType = ext => {
-  return extTypes[ext.toLowerCase()] || "application/octet-stream";
-};
-
-var walkSync = (dir, filelist) => {
-  var files = fs.readdirSync(dir);
-  filelist = filelist || [];
-  let count = 0;
-
-  files.forEach(function(file) {
-    if (fs.statSync(dir + "/" + file).isDirectory()) {
-      filelist = walkSync(dir + file + "/", filelist);
-    } else {
-      var extension = file.substr(file.lastIndexOf(".") + 1);
-      if (/(docx|xlsx|pptx|odt)$/gi.test(extension)) {
-        if (file[0] !== "." && count <= 50) {
-          var bitmap = fs.readFileSync(dir + "/" + file);
-          // convert binary data to base64 encoded string
-          const base64 = new Buffer(bitmap).toString("base64");
-          let aux = {
-            fileName: file,
-            fileType: getContentType(getExt(file)),
-            file: base64
-          };
-
-          filelist.push(aux);
-          count++;
-        }
-      }
-    }
-  });
-  return filelist;
 };
 
 module.exports = {
@@ -193,11 +136,20 @@ module.exports = {
             }
           });
           if (typeOfPermits) {
-            let result = filterEngines(engines, typeOfPermits.typeOfProcesses);
+            let result = filterEngines(
+              engines,
+              typeOfPermits.typeOfProcesses,
+              allowedFiles
+            );
             return res
               .status(200)
-              .send({ value: typeOfPermits.defaultValue, process: result });
+              .send({
+                value: typeOfPermits.defaultValue,
+                process: result,
+                allowedFiles
+              });
           }
+
           return res.status(200).send(engines);
         } else {
           let typeOfPermits;
@@ -419,10 +371,8 @@ module.exports = {
   quoteFile: async (req, res) => {
     try {
       const username = req.userEmail;
-
       const processId = req.body.process.id;
       const processName = req.body.process.name;
-
       const engineId = req.body.engine.id;
       const engineName = req.body.engine.name;
       const engineDomain = req.body.engine.domain;
@@ -646,6 +596,18 @@ module.exports = {
                 }
               }
             );
+          }
+        }
+
+        if (freeUser) {
+          if (email) {
+            //Envio de Email Usuario Casual
+            mailer.main(email, type, process.uuid, freeUser);
+          } else {
+            //Envio de Email Usuario Registrado
+            let user = await User.findOne({ where: { id: process.UserId } });
+            let email = user.email;
+            mailer.main(email, type, process.uuid, freeUser);
           }
         }
 
