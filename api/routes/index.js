@@ -32,11 +32,7 @@ router.delete(
   [verifyToken, isUser],
   process.clearNotification
 );
-router.post(
-  "/api/process_file",
-  upload.single("file"),
-  process.sendFileToExternalProcess
-);
+router.post("/api/process_file", process.sendFileToExternalProcess);
 
 //AUTH
 router.post("/api/auth/signin", auth.signin);

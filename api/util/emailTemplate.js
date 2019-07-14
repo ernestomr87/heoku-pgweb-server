@@ -2,7 +2,7 @@ const template = (email, status, uuid, freeUser) => {
   const url = `http://pgweb.pangeamt.com:3000/download/${uuid}`;
   let table;
 
-  if (freeUser && (status === 'quoting' || status === 'downloaded')) {
+  if (freeUser && (status === "quoting" || status === "downloaded")) {
     table = `
     <table role="" border="0" cellpadding="0" cellspacing="0">
       <tbody>
@@ -13,6 +13,10 @@ const template = (email, status, uuid, freeUser) => {
         </tr>
       </tbody>
     </table>
+    `;
+  } else if (freeUser && status === "received") {
+    table = `
+    <p><strong>We have received a request to process files from you. You will soon be notified of the outcome of the process.</strong></p>
     `;
   } else {
     table = `

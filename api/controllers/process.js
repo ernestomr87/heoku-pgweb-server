@@ -233,7 +233,6 @@ module.exports = {
   sendFileToExternalProcess: async (req, res) => {
     try {
       const username = req.body.email;
-
       const processId = req.body.process.id;
       const processName = req.body.process.name;
       const engineId = req.body.engine.id;
@@ -299,6 +298,7 @@ module.exports = {
               error: error
             });
           } else {
+            mailer.main(username, "received", null, true);
             return res.status(200).json({
               data: "ok"
             });
@@ -649,16 +649,6 @@ module.exports = {
           }
         }
 
-        if (email) {
-          //Envio de Email Usuario Casual
-          mailer.main(email, type, process.uuid, freeUser);
-        } else {
-          //Envio de Email Usuario Registrado
-          let user = await User.findOne({ where: { id: process.UserId } });
-          let email = user.email;
-          mailer.main(email, type, process.uuid, freeUser);
-        }
-
         return res.status(200).send({
           data: {
             fileId: process.fileId,
@@ -702,8 +692,6 @@ module.exports = {
   },
 
   pay: async (req, res) => {
-
-    
     return paypal.pay(req, res);
   },
 
