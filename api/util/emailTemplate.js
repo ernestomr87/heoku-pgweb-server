@@ -1,5 +1,5 @@
 const template = (email, status, uuid, freeUser) => {
-  const url = `http://pgweb.pangeamt.com:3001/download/${uuid}`;
+  const url = `http://pgweb.pangeamt.com:3002/download/${uuid}`;
   let table;
 
   if (freeUser && (status === "quoting" || status === "downloaded")) {

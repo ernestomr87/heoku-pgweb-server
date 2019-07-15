@@ -4,7 +4,7 @@ const db = require("./../../db/models");
 const Process = db.Process;
 
 // const BASE_PAY = "http://localhost:3000/api/payment";
-const BASE_PAY = "http://pgweb.pangeamt.com:3001/api/payment";
+const BASE_PAY = "http://pgweb.pangeamt.com:3002/api/payment";
 
 const pay = async (req, res) => {
   const uuid = req.body.uuid;
