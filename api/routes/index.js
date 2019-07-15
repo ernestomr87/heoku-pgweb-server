@@ -10,6 +10,7 @@ let checkDuplicateUserNameOrEmail = verifySignUp.checkDuplicateUserNameOrEmail;
 let verifyToken = verifyJwtToken.verifyToken;
 let isAdmin = verifyJwtToken.isAdmin;
 let isUser = verifyJwtToken.isUser;
+let isClient = verifyJwtToken.isClient;
 
 let auth = controllers.auth;
 let configuration = controllers.configuration;
@@ -75,6 +76,22 @@ router.put("/api/users/remove", [verifyToken], users.remove);
 router.put("/api/users/update", [verifyToken], users.update);
 router.put("/api/users/profile", [verifyToken], users.profile);
 router.put("/api/users/password", [verifyToken], users.password);
+
+router.get(
+  "/api/users/dashboard/user",
+  [verifyToken, isUser],
+  users.userDashboard
+);
+router.get(
+  "/api/users/dashboard/client",
+  [verifyToken, isClient],
+  users.clientDashboard
+);
+router.get(
+  "/api/users/dashboard/admin",
+  [verifyToken, isAdmin],
+  users.adminDashboard
+);
 
 //CONFIGURATION
 router.get("/api/configuration", configuration.getConfiguration);

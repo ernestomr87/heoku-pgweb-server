@@ -141,13 +141,11 @@ module.exports = {
               typeOfPermits.typeOfProcesses,
               allowedFiles
             );
-            return res
-              .status(200)
-              .send({
-                value: typeOfPermits.defaultValue,
-                process: result,
-                allowedFiles
-              });
+            return res.status(200).send({
+              value: typeOfPermits.defaultValue,
+              process: result,
+              allowedFiles
+            });
           }
 
           return res.status(200).send(engines);
@@ -660,11 +658,9 @@ module.exports = {
   cancel: async (req, res) => {
     const uuid = req.params.uuid;
     if (!uuid) {
-      res.redirect(`http://localhost:3001/dashboard/404`);
+      res.redirect(`/dashboard/404`);
     } else {
-      res.redirect(
-        `http://localhost:3001/dashboard/process-services/${uuid}/cancel`
-      );
+      res.redirect(`/dashboard/process-services/${uuid}/cancel`);
     }
   },
 

@@ -64,7 +64,7 @@ const isClient = async (req, res, next) => {
 
 const isUser = async (req, res, next) => {
   try {
-    const user = await User.findById(req.userId);
+    const user = await User.findByPk(req.userId);
     if (user.rol === "user") {
       next();
       return;

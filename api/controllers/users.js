@@ -1,9 +1,16 @@
 const Sequelize = require("sequelize");
+
 const Op = Sequelize.Op;
-var bcrypt = require("bcryptjs");
+const bcrypt = require("bcryptjs");
+
+const moment = require("moment");
+
+const map = require("async/map");
+const parallel = require("async/parallel");
 
 const db = require("./../../db/models");
 const User = db.User;
+const Process = db.Process;
 const TypeOfPermits = db.TypeOfPermits;
 
 exports.listAll = async (req, res) => {
@@ -159,7 +166,6 @@ exports.update = async (req, res) => {
     res.status(500).send(err);
   }
 };
-
 exports.profile = async (req, res) => {
   try {
     await User.update(
@@ -180,7 +186,6 @@ exports.profile = async (req, res) => {
     res.status(500).send(err);
   }
 };
-
 exports.password = async (req, res) => {
   try {
     const user = await User.findOne({
@@ -215,5 +220,169 @@ exports.password = async (req, res) => {
     });
   } catch (err) {
     res.status(500).send(err);
+  }
+};
+exports.userDashboard = async (req, res) => {
+  try {
+    let qs = [];
+    for (let i = 30; i > 0; i--) {
+      qs.push({
+        end: moment()
+          .subtract(i, "days")
+          .toDate(),
+        start: moment()
+          .subtract(i - 1, "days")
+          .toDate()
+      });
+    }
+
+    parallel(
+      [
+        cbp => {
+          map(
+            qs,
+            (item, cbm) => {
+              Process.count({
+                where: {
+                  createdAt: {
+                    [Op.lt]: item.start,
+                    [Op.gt]: item.end
+                  },
+                  userId: req.userId
+                }
+              })
+                .then(c => {
+                  item["count"] = c;
+                  item.start = item.start.valueOf();
+                  item.end = item.end.valueOf();
+                  cbm(null, item);
+                })
+                .catch(err => {
+                  cbm(err, null);
+                });
+            },
+            (err, results) => {
+              cbp(err, results);
+            }
+          );
+        },
+        cbp => {
+          Process.count({
+            where: {
+              userId: req.userId
+            }
+          })
+            .then(c => {
+              cbp(null, c);
+            })
+            .catch(err => {
+              cbp(err, null);
+            });
+        },
+        cbp => {
+          map(
+            qs,
+            (item, cbm) => {
+              Process.findAll({
+                where: {
+                  createdAt: {
+                    [Op.lt]: item.start,
+                    [Op.gt]: item.end
+                  },
+                  userId: req.userId,
+                  quoteSelected: {
+                    [Op.ne]: null
+                  }
+                }
+              })
+                .then(docs => {
+                  let value = 0;
+                  if (docs.length) {
+                    docs.map(item => {
+                      value = value + item.quoteSelected.price;
+                    });
+                  }
+                  item["value"] = value;
+                  item.start = item.start.valueOf();
+                  item.end = item.end.valueOf();
+                  cbm(null, item);
+                })
+                .catch(err => {
+                  cbm(err, null);
+                });
+            },
+            (err, results) => {
+              cbp(err, results);
+            }
+          );
+        },
+        cbp => {
+          Process.findAll({
+            where: {
+              userId: req.userId,
+              quoteSelected: {
+                [Op.ne]: null
+              }
+            }
+          })
+            .then(docs => {
+              let value = 0;
+              if (docs.length) {
+                docs.map(item => {
+                  value = value + item.quoteSelected.price;
+                });
+              }
+              cbp(null, value);
+            })
+            .catch(err => {
+              cbp(err, null);
+            });
+        }
+      ],
+      // optional callback
+      function(err, results) {
+        if (err) {
+          return res.status(500).send({
+            error: err
+          });
+        } else {
+          const data = {
+            weekProcess: results[0],
+            countProcess: results[1],
+            weekExpenses: results[2],
+            totalExpenses: results[3]
+          };
+          return res.status(200).send({
+            data
+          });
+        }
+      }
+    );
+  } catch (err) {
+    return res.status(500).send({
+      error: err
+    });
+  }
+};
+exports.clientDashboard = async (req, res) => {
+  try {
+    return res.status(200).send({
+      data: "ok"
+    });
+  } catch (err) {
+    return res.status(500).send({
+      error: err
+    });
+  }
+};
+exports.adminDashboard = async (req, res) => {
+  try {
+    return res.status(200).send({
+      data: "ok"
+    });
+  } catch (err) {
+    return res.status(500).send({
+      error: err
+    });
   }
 };

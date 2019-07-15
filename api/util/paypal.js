@@ -3,16 +3,14 @@ var paypal = require("paypal-rest-sdk");
 const db = require("./../../db/models");
 const Process = db.Process;
 
-const BASE_PAY = "http://localhost:3000/api/payment";
-const CLIENT_DASHBOARD_BASE_PAY =
-  "http://localhost:3001/dashboard/process-services";
-const CLIENT_BASE_PAY = "http://localhost:3001";
+// const BASE_PAY = "http://localhost:3000/api/payment";
+const BASE_PAY = "http://pgweb.pangeamt.com:3001/api/payment";
 
 const pay = async (req, res) => {
   const uuid = req.body.uuid;
   const quote = req.body.quote;
   if (!uuid || !quote) {
-    return res.redirect("http://localhost:3001/dashboard/404");
+    return res.redirect("/dashboard/404");
   }
 
   const process = await Process.findOne({
@@ -26,7 +24,7 @@ const pay = async (req, res) => {
   });
 
   if (!selected || !selected.length) {
-    return res.redirect("http://localhost:3001/dashboard/404");
+    return res.redirect("/dashboard/404");
   }
 
   paypal.configure({
@@ -70,9 +68,7 @@ const pay = async (req, res) => {
 
   paypal.payment.create(create_payment_json, function(error, payment) {
     if (error) {
-      res.redirect(
-        `http://localhost:3001/dashboard/process-services/${uuid}/error`
-      );
+      res.redirect(`/dashboard/process-services/${uuid}/error`);
     } else {
       //capture HATEOAS links
       var links = {};
@@ -87,9 +83,7 @@ const pay = async (req, res) => {
       if (links.hasOwnProperty("approval_url")) {
         res.redirect(links["approval_url"].href);
       } else {
-        res.redirect(
-          `http://localhost:3001/dashboard/process-services/${uuid}/error`
-        );
+        res.redirect(`/dashboard/process-services/${uuid}/error`);
       }
     }
   });
@@ -103,7 +97,7 @@ const execute = async (req, res) => {
   const payerId = { payer_id: req.query.PayerID };
 
   if (!uuid || !paymentId || !payerId) {
-    res.redirect(`http://localhost:3001/dashboard/404`);
+    res.redirect(`/dashboard/404`);
   } else {
     const process = await Process.findOne({
       where: {
@@ -113,9 +107,7 @@ const execute = async (req, res) => {
 
     paypal.payment.execute(paymentId, payerId, async (error, payment) => {
       if (error) {
-        res.redirect(
-          `http://localhost:3001/dashboard/process-services/${uuid}/error`
-        );
+        res.redirect(`/dashboard/process-services/${uuid}/error`);
       } else {
         if (payment.state == "approved") {
           const selected = process.quotes.filter(item => {
@@ -123,7 +115,7 @@ const execute = async (req, res) => {
           });
 
           if (!selected || !selected.length) {
-            return res.redirect("http://localhost:3001/dashboard/404");
+            return res.redirect("/dashboard/404");
           }
 
           selected[0].paymentId = paymentId;
@@ -140,13 +132,9 @@ const execute = async (req, res) => {
               }
             }
           );
-          res.redirect(
-            `http://localhost:3001/dashboard/process-services/${uuid}/success`
-          );
+          res.redirect(`/dashboard/process-services/${uuid}/success`);
         } else {
-          res.redirect(
-            `http://localhost:3001/dashboard/process-services/${uuid}/error`
-          );
+          res.redirect(`/dashboard/process-services/${uuid}/error`);
         }
       }
     });
