@@ -1,6 +1,7 @@
 ("use strict");
 const uuidv4 = require("uuid/v4");
-
+const Sequelize = require("sequelize");
+const Op = Sequelize.Op;
 const db = require("./../../db/models");
 const User = db.User;
 const Process = db.Process;
@@ -80,7 +81,12 @@ module.exports = {
     let uuid = req.params.uuid;
     try {
       let process = await Process.findOne({
-        where: { uuid: uuid }
+        where: {
+          [Op.or]: {
+            uuid: uuid,
+            fileId: uuid
+          }
+        }
       });
       return res.status(200).send(process);
     } catch (err) {

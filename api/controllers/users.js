@@ -239,6 +239,7 @@ exports.userDashboard = async (req, res) => {
     parallel(
       [
         cbp => {
+          //Cantidad de Procesos en el último mes x día
           map(
             qs,
             (item, cbm) => {
@@ -267,6 +268,7 @@ exports.userDashboard = async (req, res) => {
           );
         },
         cbp => {
+          //Cantidad de Procesos totales
           Process.count({
             where: {
               userId: req.userId
@@ -280,6 +282,7 @@ exports.userDashboard = async (req, res) => {
             });
         },
         cbp => {
+          //Gatos en el último mes x día
           map(
             qs,
             (item, cbm) => {
@@ -317,6 +320,7 @@ exports.userDashboard = async (req, res) => {
           );
         },
         cbp => {
+          //Gatos totales
           Process.findAll({
             where: {
               userId: req.userId,
@@ -332,7 +336,7 @@ exports.userDashboard = async (req, res) => {
                   value = value + item.quoteSelected.price;
                 });
               }
-              cbp(null, value);
+              cbp(null, { value, count: docs.length });
             })
             .catch(err => {
               cbp(err, null);
@@ -349,8 +353,9 @@ exports.userDashboard = async (req, res) => {
           const data = {
             weekProcess: results[0],
             countProcess: results[1],
+            countProcessComplete: results[3].count,
             weekExpenses: results[2],
-            totalExpenses: results[3]
+            totalExpenses: results[3].value
           };
           return res.status(200).send({
             data

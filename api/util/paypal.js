@@ -1,10 +1,11 @@
 var paypal = require("paypal-rest-sdk");
-
 const db = require("./../../db/models");
 const Process = db.Process;
+const externalApi = require("./../external_api/api");
 
-// const BASE_PAY = "http://localhost:3000/api/payment";
-const BASE_PAY = "http://pgweb.pangeamt.com:3002/api/payment";
+const BASE = "http://localhost:3000";
+const BASE_PAY = "http://localhost:3002/api/payment";
+// const BASE_PAY = "http://pgweb.pangeamt.com:3002/api/payment";
 
 const pay = async (req, res) => {
   const uuid = req.body.uuid;
@@ -97,32 +98,32 @@ const execute = async (req, res) => {
   const payerId = { payer_id: req.query.PayerID };
 
   if (!uuid || !paymentId || !payerId) {
-    res.redirect(`/dashboard/404`);
+    res.redirect(`${BASE}/dashboard/404`);
   } else {
-    const process = await Process.findOne({
-      where: {
-        uuid: uuid
-      }
-    });
-
     paypal.payment.execute(paymentId, payerId, async (error, payment) => {
       if (error) {
-        res.redirect(`/dashboard/process-services/${uuid}/error`);
+        res.redirect(`${BASE}/dashboard/process-services/${uuid}/error`);
       } else {
         if (payment.state == "approved") {
-          const selected = process.quotes.filter(item => {
+          const doc = await Process.findOne({
+            where: {
+              uuid: uuid
+            }
+          });
+
+          const selected = doc.quotes.filter(item => {
             return item.optionid === parseInt(quote);
           });
 
           if (!selected || !selected.length) {
-            return res.redirect("/dashboard/404");
+            return res.redirect(`${BASE}/dashboard/404`);
           }
 
           selected[0].paymentId = paymentId;
           selected[0].payerId = payerId;
           selected[0].token = token;
 
-          const process = await Process.update(
+          await Process.update(
             {
               quoteSelected: selected[0]
             },
@@ -135,11 +136,13 @@ const execute = async (req, res) => {
             }
           );
 
-          await externalApi.processFileAfterQuoteFile(process.fileId, quote);
+          await externalApi.processFileAfterQuoteFile(doc.fileId, quote);
 
-          res.redirect(`/dashboard/process-services/${uuid}/success`);
+          res.redirect(
+            `${BASE}/dashboard/process-services/${doc.fileId}/success`
+          );
         } else {
-          res.redirect(`/dashboard/process-services/${uuid}/error`);
+          res.redirect(`${BASE}/dashboard/process-services/${doc.uuid}/error`);
         }
       }
     });
