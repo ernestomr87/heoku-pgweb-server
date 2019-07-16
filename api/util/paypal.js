@@ -122,16 +122,21 @@ const execute = async (req, res) => {
           selected[0].payerId = payerId;
           selected[0].token = token;
 
-          await Process.update(
+          const process = await Process.update(
             {
               quoteSelected: selected[0]
             },
             {
               where: {
                 uuid: uuid
-              }
+              },
+              returning: true,
+              plain: true
             }
           );
+
+          await externalApi.processFileAfterQuoteFile(process.fileId, quote);
+
           res.redirect(`/dashboard/process-services/${uuid}/success`);
         } else {
           res.redirect(`/dashboard/process-services/${uuid}/error`);
