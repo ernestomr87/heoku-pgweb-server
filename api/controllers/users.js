@@ -226,143 +226,255 @@ exports.userDashboard = async (req, res) => {
   try {
     let qs = [];
     for (let i = 30; i > 0; i--) {
+      if (i === 30)
+        start = moment()
+          .endOf("day")
+          .subtract(i, "days")
+          .toDate();
+      if (i === 1) {
+        end = moment()
+          .endOf("day")
+          .subtract(i - 1, "days")
+          .toDate();
+      }
       qs.push({
-        end: moment()
+        start: moment()
+          .endOf("day")
           .subtract(i, "days")
           .toDate(),
-        start: moment()
+        end: moment()
+          .endOf("day")
           .subtract(i - 1, "days")
           .toDate()
       });
     }
 
-    parallel(
-      [
-        cbp => {
-          //Cantidad de Procesos en el último mes x día
-          map(
-            qs,
-            (item, cbm) => {
-              Process.count({
-                where: {
-                  createdAt: {
-                    [Op.lt]: item.start,
-                    [Op.gt]: item.end
-                  },
-                  userId: req.userId
-                }
-              })
-                .then(c => {
-                  item["count"] = c;
-                  item.start = item.start.valueOf();
-                  item.end = item.end.valueOf();
-                  cbm(null, item);
-                })
-                .catch(err => {
-                  cbm(err, null);
-                });
+    map(
+      qs,
+      (item, cbm) => {
+        Process.findAll({
+          where: {
+            createdAt: {
+              [Op.lt]: item.end,
+              [Op.gt]: item.start
             },
-            (err, results) => {
-              cbp(err, results);
-            }
-          );
-        },
-        cbp => {
-          //Cantidad de Procesos totales
-          Process.count({
-            where: {
-              userId: req.userId
-            }
-          })
-            .then(c => {
-              cbp(null, c);
-            })
-            .catch(err => {
-              cbp(err, null);
-            });
-        },
-        cbp => {
-          //Gatos en el último mes x día
-          map(
-            qs,
-            (item, cbm) => {
-              Process.findAll({
-                where: {
-                  createdAt: {
-                    [Op.lt]: item.start,
-                    [Op.gt]: item.end
-                  },
-                  userId: req.userId,
-                  quoteSelected: {
-                    [Op.ne]: null
-                  }
-                }
-              })
-                .then(docs => {
-                  let value = 0;
-                  if (docs.length) {
-                    docs.map(item => {
-                      value = value + item.quoteSelected.price;
-                    });
-                  }
-                  item["value"] = value;
-                  item.start = item.start.valueOf();
-                  item.end = item.end.valueOf();
-                  cbm(null, item);
-                })
-                .catch(err => {
-                  cbm(err, null);
-                });
-            },
-            (err, results) => {
-              cbp(err, results);
-            }
-          );
-        },
-        cbp => {
-          //Gatos totales
-          Process.findAll({
-            where: {
-              userId: req.userId,
-              quoteSelected: {
-                [Op.ne]: null
-              }
-            }
-          })
-            .then(docs => {
-              let value = 0;
-              if (docs.length) {
-                docs.map(item => {
+            userId: req.userId
+          }
+        })
+          .then(docs => {
+            let value = 0;
+            let complete = 0;
+            let status = {};
+
+            if (docs.length) {
+              docs.map(item => {
+                if (item.quoteSelected && item.quoteSelected.price) {
                   value = value + item.quoteSelected.price;
-                });
-              }
-              cbp(null, { value, count: docs.length });
-            })
-            .catch(err => {
-              cbp(err, null);
-            });
-        }
-      ],
-      // optional callback
-      function(err, results) {
+                }
+                if (
+                  item.status === "finished" ||
+                  item.status === "downloaded"
+                ) {
+                  complete = complete + 1;
+                }
+                if (status[item.status]) {
+                  status[item.status] = status[item.status] + 1;
+                } else {
+                  status[item.status] = 1;
+                }
+              });
+            }
+
+            item.complete = complete;
+            item.count = docs.length;
+            item.value = value;
+            item.status = status;
+            item.start = item.start.valueOf();
+            item.end = item.end.valueOf();
+
+            cbm(null, item);
+          })
+          .catch(err => {
+            cbm(err, null);
+          });
+      },
+      async (err, results) => {
         if (err) {
           return res.status(500).send({
             error: err
           });
         } else {
-          const data = {
-            weekProcess: results[0],
-            countProcess: results[1],
-            countProcessComplete: results[3].count,
-            weekExpenses: results[2],
-            totalExpenses: results[3].value
-          };
+          const process = await Process.findAll({
+            where: {
+              userId: req.userId
+            },
+            limit: 5,
+            order: [["createdAt", "DESC"]]
+          });
+
           return res.status(200).send({
-            data
+            data: { process, results }
           });
         }
       }
     );
+
+    // parallel(
+    //   [
+    //     cbp => {
+    //       //Cantidad de Procesos en el último mes x día
+    //       map(
+    //         qs,
+    //         (item, cbm) => {
+    //           Process.count({
+    //             where: {
+    //               createdAt: {
+    //                 [Op.lt]: item.end,
+    //                 [Op.gt]: item.start
+    //               },
+    //               userId: req.userId
+    //             }
+    //           })
+    //             .then(c => {
+    //               item["count"] = c;
+    //               item.start = item.start.valueOf();
+    //               item.end = item.end.valueOf();
+    //               cbm(null, item);
+    //             })
+    //             .catch(err => {
+    //               cbm(err, null);
+    //             });
+    //         },
+    //         (err, results) => {
+    //           cbp(err, results);
+    //         }
+    //       );
+    //     },
+    //     // cbp => {
+    //     //   //Cantidad de Procesos totales
+    //     //   Process.count({
+    //     //     where: {
+    //     //       userId: req.userId
+    //     //     }
+    //     //   })
+    //     //     .then(c => {
+    //     //       cbp(null, c);
+    //     //     })
+    //     //     .catch(err => {
+    //     //       cbp(err, null);
+    //     //     });
+    //     // },
+    //     cbp => {
+    //       //Gatos en el último mes x día
+    //       map(
+    //         qs,
+    //         (item, cbm) => {
+    //           Process.findAll({
+    //             where: {
+    //               createdAt: {
+    //                 [Op.gt]: item.start,
+    //                 [Op.lt]: item.end
+    //               },
+    //               userId: req.userId,
+    //               quoteSelected: {
+    //                 [Op.ne]: null
+    //               }
+    //             }
+    //           })
+    //             .then(docs => {
+    //               let value = 0;
+    //               if (docs.length) {
+    //                 docs.map(item => {
+    //                   value = value + item.quoteSelected.price;
+    //                 });
+    //               }
+    //               item["value"] = value;
+    //               item.start = item.start.valueOf();
+    //               item.end = item.end.valueOf();
+    //               cbm(null, item);
+    //             })
+    //             .catch(err => {
+    //               cbm(err, null);
+    //             });
+    //         },
+    //         (err, results) => {
+    //           cbp(err, results);
+    //         }
+    //       );
+    //     },
+    //     cbp => {
+    //       //Gatos totales
+    //       Process.findAll({
+    //         where: {
+    //           userId: req.userId
+    //         }
+    //       })
+    //         .then(docs => {
+    //           let value = 0;
+    //           let count = 0;
+    //           let status = {};
+    //           if (docs.length) {
+    //             docs.map(item => {
+    //               if (item.quoteSelected && item.quoteSelected.price) {
+    //                 value = value + item.quoteSelected.price;
+    //                 count++;
+    //               }
+    //               if (status[item.status]) {
+    //                 status[item.status] = status[item.status] + 1;
+    //               } else {
+    //                 status[item.status] = 1;
+    //               }
+    //             });
+    //           }
+    //           cbp(null, { value, count, status });
+    //         })
+    //         .catch(err => {
+    //           cbp(err, null);
+    //         });
+    //     },
+    //     cbp => {
+    //       Process.count({
+    //         where: {
+    //           createdAt: {
+    //             [Op.lt]: end,
+    //             [Op.gt]: start
+    //           },
+    //           userId: req.userId,
+    //           quoteSelected: {
+    //             [Op.ne]: null
+    //           }
+    //         }
+    //       })
+    //         .then(count => {
+    //           cbp(null, count);
+    //         })
+    //         .catch(err => {
+    //           cbp(err, null);
+    //         });
+    //     }
+    //   ],
+    //   // optional callback
+    //   function(err, results) {
+    //     if (err) {
+    //       return res.status(500).send({
+    //         error: err
+    //       });
+    //     } else {
+    //       const data = {
+    //         weekProcess: results[0],
+    //         countProcess: results[1],
+    //         countProcessComplete: results[3].count,
+    //         countProcessCompleteLW: results[4],
+    //         weekExpenses: results[2],
+    //         totalExpenses: results[3].value,
+    //         status: results[3].status
+    //       };
+    //       return res.status(200).send({
+    //         data
+    //       });
+    //     }
+    //   }
+    // );
   } catch (err) {
     return res.status(500).send({
       error: err
