@@ -4,8 +4,8 @@ const Process = db.Process;
 const externalApi = require("./../external_api/api");
 
 const BASE = "http://localhost:3000";
-const BASE_PAY = "http://localhost:3002/api/payment";
-// const BASE_PAY = "http://pgweb.pangeamt.com:3002/api/payment";
+// const BASE_PAY = "http://localhost:3002/api/payment";
+const BASE_PAY = "http://pgweb.pangeamt.com:3002/api/payment";
 
 const pay = async (req, res) => {
   const uuid = req.body.uuid;
@@ -98,11 +98,11 @@ const execute = async (req, res) => {
   const payerId = { payer_id: req.query.PayerID };
 
   if (!uuid || !paymentId || !payerId) {
-    res.redirect(`${BASE}/dashboard/404`);
+    res.redirect(`/dashboard/404`);
   } else {
     paypal.payment.execute(paymentId, payerId, async (error, payment) => {
       if (error) {
-        res.redirect(`${BASE}/dashboard/process-services/${uuid}/error`);
+        res.redirect(`/dashboard/process-services/${uuid}/error`);
       } else {
         if (payment.state == "approved") {
           const doc = await Process.findOne({
@@ -116,7 +116,7 @@ const execute = async (req, res) => {
           });
 
           if (!selected || !selected.length) {
-            return res.redirect(`${BASE}/dashboard/404`);
+            return res.redirect(`/dashboard/404`);
           }
 
           selected[0].paymentId = paymentId;
@@ -139,10 +139,10 @@ const execute = async (req, res) => {
           await externalApi.processFileAfterQuoteFile(doc.fileId, quote);
 
           res.redirect(
-            `${BASE}/dashboard/process-services/${doc.fileId}/success`
+            `/dashboard/process-services/${doc.fileId}/success`
           );
         } else {
-          res.redirect(`${BASE}/dashboard/process-services/${doc.uuid}/error`);
+          res.redirect(`/dashboard/process-services/${doc.uuid}/error`);
         }
       }
     });
