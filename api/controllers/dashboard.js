@@ -1,7 +1,8 @@
 ("use strict");
 const apiKey = require("./../../config/config")["apiKey"];
 var Sequelize = require("sequelize");
-var config = require("./../../config/config.json")["production"];
+const env = process.env.NODE_ENV || "production";
+var config = require("./../../config/config.json")[env];
 var sequelize = new Sequelize(
   config.database_dashboard,
   config.username,

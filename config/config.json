@@ -4,7 +4,8 @@
     "password": "epastor",
     "database": "pangeamt_production",
     "host": "prod.pangeamt.com",
-    "dialect": "mysql"
+    "dialect": "mysql",
+    "BASE": "http://localhost:3000"
   },
   "test": {
     "username": "root",
@@ -19,7 +20,8 @@
     "database": "pangeamt_production",
     "database_dashboard": "relay",
     "host": "prod.pangeamt.com",
-    "dialect": "mysql"
+    "dialect": "mysql",
+    "BASE": "http://pgweb.pangeamt.com:3002"
   },
   "apiKey": "cOrtesvalenc1anas",
   "secret": "pangeamt-super-secret-key",

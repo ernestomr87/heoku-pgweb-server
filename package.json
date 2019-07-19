@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "debug": "nodemon --inspect ./bin/www"
+    "start": "NODE_ENV=production node ./bin/www",
+    "debug": "NODE_ENV=development node --nolazy --inspect-brk=9229 ./bin/www"
   },
   "dependencies": {
     "async": "3.1.0",
@@ -42,6 +42,7 @@
     "@babel/polyfill": "7.4.3",
     "@babel/preset-env": "7.3.1",
     "babel-preset-env": "1.7.0",
+    "cross-env": "^5.2.0",
     "nodemon": "1.18.9"
   }
 }

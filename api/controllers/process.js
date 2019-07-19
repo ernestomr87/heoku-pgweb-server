@@ -20,6 +20,9 @@ const apiKey = require("./../../config/config")["apiKey"];
 const allowedFiles = require("./../../config/config")["allowedFiles"];
 const { getStatus } = require("./../util/functions");
 
+const env = process.env.NODE_ENV || "production";
+const config = require("./../../config/config.json")[env];
+
 const filterEngines = (engines, types) => {
   let newArrays = [];
   for (let i = 0; i < engines.length; i++) {
@@ -664,9 +667,9 @@ module.exports = {
   cancel: async (req, res) => {
     const uuid = req.params.uuid;
     if (!uuid) {
-      res.redirect(`/dashboard/404`);
+      res.redirect(`${config.BASE}/dashboard/404`);
     } else {
-      res.redirect(`/dashboard/process-services/${uuid}/cancel`);
+      res.redirect(`${config.BASE}/dashboard/process-services/${uuid}/cancel`);
     }
   },
 

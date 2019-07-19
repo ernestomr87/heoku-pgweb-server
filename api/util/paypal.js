@@ -2,16 +2,14 @@ var paypal = require("paypal-rest-sdk");
 const db = require("./../../db/models");
 const Process = db.Process;
 const externalApi = require("./../external_api/api");
-
-const BASE = "http://localhost:3000";
-// const BASE_PAY = "http://localhost:3002/api/payment";
-const BASE_PAY = "http://pgweb.pangeamt.com:3002/api/payment";
+const env = process.env.NODE_ENV || "production";
+const config = require("./../../config/config.json")[env];
 
 const pay = async (req, res) => {
   const uuid = req.body.uuid;
   const quote = req.body.quote;
   if (!uuid || !quote) {
-    return res.redirect("/dashboard/404");
+    return res.redirect(`${config.BASE}/dashboard/404`);
   }
 
   const process = await Process.findOne({
@@ -25,7 +23,7 @@ const pay = async (req, res) => {
   });
 
   if (!selected || !selected.length) {
-    return res.redirect("/dashboard/404");
+    return res.redirect(`${config.BASE}/dashboard/404`);
   }
 
   paypal.configure({
@@ -42,8 +40,8 @@ const pay = async (req, res) => {
       payment_method: "paypal"
     },
     redirect_urls: {
-      return_url: `${BASE_PAY}/${uuid}/${quote}/return`,
-      cancel_url: `${BASE_PAY}/${uuid}/cancel`
+      return_url: `${config.BASE}/api/payment/${uuid}/${quote}/return`,
+      cancel_url: `${config.BASE}/api/payment/${uuid}/cancel`
     },
     transactions: [
       {
@@ -69,7 +67,7 @@ const pay = async (req, res) => {
 
   paypal.payment.create(create_payment_json, function(error, payment) {
     if (error) {
-      res.redirect(`/dashboard/process-services/${uuid}/error`);
+      res.redirect(`${config.BASE}/dashboard/process-services/${uuid}/error`);
     } else {
       //capture HATEOAS links
       var links = {};
@@ -84,7 +82,7 @@ const pay = async (req, res) => {
       if (links.hasOwnProperty("approval_url")) {
         res.redirect(links["approval_url"].href);
       } else {
-        res.redirect(`/dashboard/process-services/${uuid}/error`);
+        res.redirect(`${config.BASE}/dashboard/process-services/${uuid}/error`);
       }
     }
   });
@@ -98,11 +96,11 @@ const execute = async (req, res) => {
   const payerId = { payer_id: req.query.PayerID };
 
   if (!uuid || !paymentId || !payerId) {
-    res.redirect(`/dashboard/404`);
+    res.redirect(`${config.BASE}/dashboard/404`);
   } else {
     paypal.payment.execute(paymentId, payerId, async (error, payment) => {
       if (error) {
-        res.redirect(`/dashboard/process-services/${uuid}/error`);
+        res.redirect(`${config.BASE}/dashboard/process-services/${uuid}/error`);
       } else {
         if (payment.state == "approved") {
           const doc = await Process.findOne({
@@ -116,7 +114,7 @@ const execute = async (req, res) => {
           });
 
           if (!selected || !selected.length) {
-            return res.redirect(`/dashboard/404`);
+            return res.redirect(`${config.BASE}/dashboard/404`);
           }
 
           selected[0].paymentId = paymentId;
@@ -139,10 +137,12 @@ const execute = async (req, res) => {
           await externalApi.processFileAfterQuoteFile(doc.fileId, quote);
 
           res.redirect(
-            `/dashboard/process-services/${doc.fileId}/success`
+            `${config.BASE}/dashboard/process-services/${doc.fileId}/success`
           );
         } else {
-          res.redirect(`/dashboard/process-services/${doc.uuid}/error`);
+          res.redirect(
+            `${config.BASE}/dashboard/process-services/${doc.uuid}/error`
+          );
         }
       }
     });
