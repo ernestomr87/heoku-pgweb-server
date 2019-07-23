@@ -118,7 +118,7 @@ const execute = async (req, res) => {
           }
 
           selected[0].paymentId = paymentId;
-          selected[0].payerId = payerId;
+          selected[0].payerId = req.query.PayerID;
           selected[0].token = token;
 
           await Process.update(
