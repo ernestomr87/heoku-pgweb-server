@@ -30,7 +30,7 @@ const verifyToken = async (req, res, next) => {
 
 const isAdmin = async (req, res, next) => {
   try {
-    const user = await User.findById(req.userId);
+    const user = await User.findByPk(req.userId);
     if (user.rol === "admin") {
       next();
       return;
@@ -47,7 +47,7 @@ const isAdmin = async (req, res, next) => {
 
 const isClient = async (req, res, next) => {
   try {
-    const user = await User.findById(req.userId);
+    const user = await User.findByPk(req.userId);
     if (user.rol === "client") {
       next();
       return;

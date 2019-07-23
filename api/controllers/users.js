@@ -117,7 +117,10 @@ exports.create = async (req, res) => {
 
     let typeOfPermits = await TypeOfPermits.findOne({
       where: {
-        id: req.body.typeOfPermits
+        [Op.or]: {
+          id: req.body.typeOfPermits,
+          name: req.body.typeOfPermits
+        }
       }
     });
 
@@ -126,9 +129,16 @@ exports.create = async (req, res) => {
       let client = await User.findOne({
         where: {
           id: req.userId
-        }
+        },
+        include: [
+          {
+            model: User
+          }
+        ]
       });
-      await client.setUsers(user);
+      let users = client.Users;
+      users.push(user);
+      await client.setUsers(users);
     }
     return res.status(200).send({
       ok: "Action success"
@@ -326,9 +336,113 @@ exports.userDashboard = async (req, res) => {
 };
 exports.clientDashboard = async (req, res) => {
   try {
-    return res.status(200).send({
-      data: "ok"
+    let qs = [];
+    for (let i = 30; i > 0; i--) {
+      if (i === 30)
+        start = moment()
+          .endOf("day")
+          .subtract(i, "days")
+          .toDate();
+      if (i === 1) {
+        end = moment()
+          .endOf("day")
+          .subtract(i - 1, "days")
+          .toDate();
+      }
+      qs.push({
+        start: moment()
+          .endOf("day")
+          .subtract(i, "days")
+          .toDate(),
+        end: moment()
+          .endOf("day")
+          .subtract(i - 1, "days")
+          .toDate()
+      });
+    }
+
+    const users = await User.findAll({
+      where: {
+        userId: req.userId,
+        remove: false
+      },
+      attributes: ["fullName", "id"],
+      order: [["createdAt", "DESC"]]
     });
+
+    const orQuery = users.map(item => {
+      return { userId: item.id };
+    });
+
+    map(
+      qs,
+      (item, cbm) => {
+        Process.findAll({
+          where: {
+            createdAt: {
+              [Op.lt]: item.end,
+              [Op.gt]: item.start
+            },
+            [Op.or]: orQuery
+          }
+        })
+          .then(docs => {
+            let value = 0;
+            let complete = 0;
+            let status = {};
+
+            if (docs.length) {
+              docs.map(item => {
+                if (item.quoteSelected && item.quoteSelected.price) {
+                  value = value + item.quoteSelected.price;
+                }
+                if (
+                  item.status === "finished" ||
+                  item.status === "downloaded"
+                ) {
+                  complete = complete + 1;
+                }
+                if (status[item.status]) {
+                  status[item.status] = status[item.status] + 1;
+                } else {
+                  status[item.status] = 1;
+                }
+              });
+            }
+
+            item.complete = complete;
+            item.count = docs.length;
+            item.value = value;
+            item.status = status;
+            item.start = item.start.valueOf();
+            item.end = item.end.valueOf();
+
+            cbm(null, item);
+          })
+          .catch(err => {
+            cbm(err, null);
+          });
+      },
+      async (err, results) => {
+        if (err) {
+          return res.status(500).send({
+            error: err
+          });
+        } else {
+          const process = await Process.findAll({
+            where: {
+              [Op.or]: orQuery
+            },
+            limit: 5,
+            order: [["createdAt", "DESC"]]
+          });
+
+          return res.status(200).send({
+            data: { process, results, users }
+          });
+        }
+      }
+    );
   } catch (err) {
     return res.status(500).send({
       error: err
