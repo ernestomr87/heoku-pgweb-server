@@ -62,6 +62,23 @@ const isClient = async (req, res, next) => {
   }
 };
 
+const isAdminIsCLient = async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.userId);
+    if (user.rol === "client" || user.rol === "admin") {
+      next();
+      return;
+    } else {
+      res.status(403).send("Require Client or Admin Role!");
+      return;
+    }
+  } catch (err) {
+    res.status(500).json({
+      error: err
+    });
+  }
+};
+
 const isUser = async (req, res, next) => {
   try {
     const user = await User.findByPk(req.userId);
@@ -84,5 +101,6 @@ authJwt.verifyToken = verifyToken;
 authJwt.isAdmin = isAdmin;
 authJwt.isClient = isClient;
 authJwt.isUser = isUser;
+authJwt.isAdminIsCLient = isAdminIsCLient;
 
 module.exports = authJwt;

@@ -21,6 +21,7 @@ module.exports = {
       engineSource: Sequelize.STRING,
       engineTarget: Sequelize.STRING,
       email: Sequelize.STRING,
+      secret: Sequelize.STRING,
       quotes: Sequelize.JSON,
       quoteSelected: Sequelize.JSON,
       fileDownload: Sequelize.JSON,

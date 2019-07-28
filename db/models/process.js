@@ -16,6 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       engineSource: DataTypes.STRING,
       engineTarget: DataTypes.STRING,
       email: DataTypes.STRING,
+      secret: DataTypes.STRING,
       quotes: DataTypes.JSON,
       quoteSelected: DataTypes.JSON,
       fileDownload: DataTypes.JSON

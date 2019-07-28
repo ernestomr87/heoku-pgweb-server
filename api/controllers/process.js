@@ -189,9 +189,31 @@ module.exports = {
     }
   },
 
+  getProcessByListId=(req, res)=>{
+    let process = req.query.process;
+
+    let query = process.map((item)=>{
+      return { id: item.id };
+    });
+
+    try {
+      let process = await Process.findOne({
+        where: {
+          [Op.or]: query
+        }
+      });
+      return res.status(200).send(process);
+    } catch (err) {
+      res.status(400).send({
+        error: err
+      });
+    }
+  },
+
   sendFileToExternalProcess: async (req, res) => {
     try {
       const username = req.body.email;
+      const secret = req.body.secret;
       const processId = req.body.process.id;
       const processName = req.body.process.name;
       const engineId = req.body.engine.id;
@@ -216,7 +238,8 @@ module.exports = {
               engineId,
               fileName,
               fileType,
-              file
+              file,
+              secret
             )
             .then(result => {
               const error = result.data.error;
@@ -237,8 +260,8 @@ module.exports = {
                   engineTarget,
                   email: username
                 })
-                  .then(() => {
-                    cbm(null, true);
+                  .then(process => {
+                    cbm(null, process);
                   })
                   .catch(err => {
                     cbm(err, null);
@@ -251,15 +274,21 @@ module.exports = {
               cbm(err, null);
             });
         },
-        err => {
+        (err, result) => {
           if (err) {
             return res.status(500).send({
               error: error
             });
           } else {
+            const process = result.map(item => {
+              return item.id;
+            });
             mailer.main(username, "received", null, true);
+
             return res.status(200).json({
-              data: "ok"
+              data: {
+                process,
+              }
             });
           }
         }
@@ -564,7 +593,9 @@ module.exports = {
 
         if (notification[1]) {
           if (process.UserId) {
-            let user = await User.findOne({ where: { id: process.UserId } });
+            let user = await User.findOne({
+              where: { id: process.UserId }
+            });
             email = user.email;
             user.addNotifications(notification[0]);
           }
@@ -606,17 +637,17 @@ module.exports = {
           }
         }
 
-        if (freeUser) {
-          if (email) {
-            //Envio de Email Usuario Casual
-            mailer.main(email, type, process.uuid, freeUser);
-          } else {
-            //Envio de Email Usuario Registrado
-            let user = await User.findOne({ where: { id: process.UserId } });
-            let email = user.email;
-            mailer.main(email, type, process.uuid, freeUser);
-          }
-        }
+        // if (freeUser) {
+        //   if (email) {
+        //     //Envio de Email Usuario Casual
+        //     mailer.main(email, type, process.uuid, freeUser);
+        //   } else {
+        //     //Envio de Email Usuario Registrado
+        //     let user = await User.findOne({ where: { id: process.UserId } });
+        //     let email = user.email;
+        //     mailer.main(email, type, process.uuid, freeUser);
+        //   }
+        // }
 
         return res.status(200).send({
           data: {

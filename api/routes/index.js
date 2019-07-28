@@ -11,6 +11,7 @@ let verifyToken = verifyJwtToken.verifyToken;
 let isAdmin = verifyJwtToken.isAdmin;
 let isUser = verifyJwtToken.isUser;
 let isClient = verifyJwtToken.isClient;
+let isAdminIsCLient = verifyJwtToken.isAdminIsCLient;
 
 let auth = controllers.auth;
 let configuration = controllers.configuration;
@@ -82,15 +83,28 @@ router.get(
   [verifyToken, isUser],
   users.userDashboard
 );
+
 router.get(
   "/api/users/dashboard/client",
   [verifyToken, isClient],
   users.clientDashboard
 );
+
 router.get(
   "/api/users/dashboard/admin",
   [verifyToken, isAdmin],
   users.adminDashboard
+);
+
+router.post(
+  "/api/users/dashboard/user",
+  [verifyToken, isAdminIsCLient],
+  users.ownerUserDashboard
+);
+router.post(
+  "/api/users/dashboard/client",
+  [verifyToken, isAdmin],
+  users.ownerClientDashboard
 );
 
 //CONFIGURATION
