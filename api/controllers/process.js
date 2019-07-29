@@ -11,6 +11,7 @@ const Engines = db.Engines;
 
 const _ = require("lodash");
 const map = require("async/map");
+const mapSeries = require("async/mapSeries");
 
 const mailer = require("./../util/mailer");
 const paypal = require("./../util/paypal");
@@ -189,17 +190,13 @@ module.exports = {
     }
   },
 
-  getProcessByListId=(req, res)=>{
-    let process = req.query.process;
-
-    let query = process.map((item)=>{
-      return { id: item.id };
-    });
+  getProcessByListId: async (req, res) => {
+    let secret = req.query.secret;
 
     try {
-      let process = await Process.findOne({
+      let process = await Process.findAll({
         where: {
-          [Op.or]: query
+          secret
         }
       });
       return res.status(200).send(process);
@@ -224,22 +221,21 @@ module.exports = {
 
       const files = req.body.files;
 
-      map(
+      mapSeries(
         files,
         (item, cbm) => {
           const fileName = item.fileName;
           const fileType = item.fileType;
           const file = item.file.replace(`data:${fileType};base64,`, "");
           externalApi
-            .processFile(
+            .quoteFile(
               username,
               engineSource,
               engineTarget,
               engineId,
               fileName,
               fileType,
-              file,
-              secret
+              file
             )
             .then(result => {
               const error = result.data.error;
@@ -258,10 +254,11 @@ module.exports = {
                   engineDomain,
                   engineSource,
                   engineTarget,
+                  secret,
                   email: username
                 })
-                  .then(process => {
-                    cbm(null, process);
+                  .then(() => {
+                    cbm(null, true);
                   })
                   .catch(err => {
                     cbm(err, null);
@@ -274,21 +271,16 @@ module.exports = {
               cbm(err, null);
             });
         },
-        (err, result) => {
+        err => {
           if (err) {
             return res.status(500).send({
-              error: error
+              error: err
             });
           } else {
-            const process = result.map(item => {
-              return item.id;
-            });
             mailer.main(username, "received", null, true);
 
             return res.status(200).json({
-              data: {
-                process,
-              }
+              data: "ok"
             });
           }
         }
@@ -569,8 +561,8 @@ module.exports = {
           where: { fileId: req.body.fileid }
         });
 
-        let email = process.email;
-        let freeUser = process.email ? true : false;
+        // let email = process.email;
+        // let freeUser = process.email ? true : false;
 
         let noty = {
           type: type,
@@ -705,6 +697,20 @@ module.exports = {
   },
 
   return: async (req, res) => {
+    return paypal.execute(req, res);
+  },
+
+  cancel_free: async (req, res) => {
+    const uuid = req.params.uuid;
+    if (!uuid) {
+      res.redirect(`${config.BASE}/404`);
+    } else {
+      res.redirect(`${config.BASE}?pay=cancel&uuid=${uuid}`);
+    }
+  },
+
+  return_free: async (req, res) => {
+    req.freeUser = true;
     return paypal.execute(req, res);
   }
 };

@@ -53,10 +53,11 @@ router.put("/api/typeOfPermits/edit", [verifyToken], typeOfPermits.edit);
 router.put("/api/typeOfPermits/remove", [verifyToken], typeOfPermits.remove);
 
 //Process
+router.get("/api/process/getProcessByListId", process.getProcessByListId);
 router.get("/api/process/process", [verifyToken], process.getProcess);
 router.get("/api/process/user", [verifyToken], auth.userContent);
 router.get("/api/process/:uuid", process.getProcessByUuid);
-router.post("/api/process/processFile", [verifyToken], process.processFile);
+router.post("/api/process/processFile", [verifyToken], process.quoteFile);
 router.post("/api/process/quoteFile", [verifyToken], process.quoteFile);
 router.post(
   "/api/process/processFileAfterQuoteFile",
@@ -113,9 +114,11 @@ router.put("/api/paypal", configuration.setPaypal);
 router.put("/api/email", configuration.setEmailNotification);
 
 //PAYMENTS
-router.post("/api/payment/pay", [verifyToken], process.pay);
+router.post("/api/payment/pay", process.pay);
 router.get("/api/payment/:uuid/:quote/return", process.return);
 router.get("/api/payment/:uuid/cancel", process.cancel);
+router.get("/api/payment/:uuid/:quote/return_free", process.return_free);
+router.get("/api/payment/:uuid/cancel_free", process.cancel_free);
 
 // router.post('/api/email', mailer.main('ernestomr87@gmail.com',''));
 

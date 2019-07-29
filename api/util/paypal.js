@@ -9,7 +9,11 @@ const pay = async (req, res) => {
   const uuid = req.body.uuid;
   const quote = req.body.quote;
   if (!uuid || !quote) {
-    return res.redirect(`${config.BASE}/dashboard/404`);
+    if (req.userId) {
+      return res.redirect(`${config.BASE}/dashboard/404`);
+    } else {
+      return res.redirect(`${config.BASE}/404`);
+    }
   }
 
   const process = await Process.findOne({
@@ -23,7 +27,11 @@ const pay = async (req, res) => {
   });
 
   if (!selected || !selected.length) {
-    return res.redirect(`${config.BASE}/dashboard/404`);
+    if (req.userId) {
+      return res.redirect(`${config.BASE}/dashboard/404`);
+    } else {
+      return res.redirect(`${config.BASE}/404`);
+    }
   }
 
   paypal.configure({
@@ -34,14 +42,25 @@ const pay = async (req, res) => {
       "ENCfTk5hKDGJLzdxEPtwH8lBgOBL1rfi4PqwRbGW0f3WOs2zBhwW0lLks0qzqCpnNJrLddY5-nimpBm1"
   });
 
+  let return_url;
+  let cancel_url;
+
+  if (req.userId) {
+    return_url = `${config.BASE}/api/payment/${uuid}/${quote}/return`;
+    cancel_url = `${config.BASE}/api/payment/${uuid}/cancel`;
+  } else {
+    return_url = `${config.BASE}/api/payment/${uuid}/${quote}/return_free`;
+    cancel_url = `${config.BASE}/api/payment/${uuid}/cancel_free`;
+  }
+
   var create_payment_json = {
     intent: "sale",
     payer: {
       payment_method: "paypal"
     },
     redirect_urls: {
-      return_url: `${config.BASE}/api/payment/${uuid}/${quote}/return`,
-      cancel_url: `${config.BASE}/api/payment/${uuid}/cancel`
+      return_url: return_url,
+      cancel_url: cancel_url
     },
     transactions: [
       {
@@ -67,7 +86,11 @@ const pay = async (req, res) => {
 
   paypal.payment.create(create_payment_json, function(error, payment) {
     if (error) {
-      res.redirect(`${config.BASE}/dashboard/process-services/${uuid}/error`);
+      if (req.userId) {
+        res.redirect(`${config.BASE}/dashboard/process-services/${uuid}/error`);
+      } else {
+        res.redirect(`${config.BASE}?pay=error&uuid=${uuid}`);
+      }
     } else {
       //capture HATEOAS links
       var links = {};
@@ -82,7 +105,13 @@ const pay = async (req, res) => {
       if (links.hasOwnProperty("approval_url")) {
         res.redirect(links["approval_url"].href);
       } else {
-        res.redirect(`${config.BASE}/dashboard/process-services/${uuid}/error`);
+        if (req.userId) {
+          res.redirect(
+            `${config.BASE}/dashboard/process-services/${uuid}/error`
+          );
+        } else {
+          res.redirect(`${config.BASE}?pay=error&uuid=${uuid}`);
+        }
       }
     }
   });
@@ -96,11 +125,21 @@ const execute = async (req, res) => {
   const payerId = { payer_id: req.query.PayerID };
 
   if (!uuid || !paymentId || !payerId) {
-    res.redirect(`${config.BASE}/dashboard/404`);
+    if (req.freeUser) {
+      res.redirect(`${config.BASE}/404`);
+    } else {
+      res.redirect(`${config.BASE}/dashboard/404`);
+    }
   } else {
     paypal.payment.execute(paymentId, payerId, async (error, payment) => {
       if (error) {
-        res.redirect(`${config.BASE}/dashboard/process-services/${uuid}/error`);
+        if (req.freeUser) {
+          res.redirect(`${config.BASE}?pay=error&uuid=${doc.uuid}`);
+        } else {
+          res.redirect(
+            `${config.BASE}/dashboard/process-services/${uuid}/error`
+          );
+        }
       } else {
         if (payment.state == "approved") {
           const doc = await Process.findOne({
@@ -114,7 +153,11 @@ const execute = async (req, res) => {
           });
 
           if (!selected || !selected.length) {
-            return res.redirect(`${config.BASE}/dashboard/404`);
+            if (req.freeUser) {
+              res.redirect(`${config.BASE}/404`);
+            } else {
+              res.redirect(`${config.BASE}/dashboard/404`);
+            }
           }
 
           selected[0].paymentId = paymentId;
@@ -136,13 +179,21 @@ const execute = async (req, res) => {
 
           await externalApi.processFileAfterQuoteFile(doc.fileId, quote);
 
-          res.redirect(
-            `${config.BASE}/dashboard/process-services/${doc.fileId}/success`
-          );
+          if (req.freeUser) {
+            res.redirect(`${config.BASE}?pay=success&fileId=${doc.fileId}`);
+          } else {
+            res.redirect(
+              `${config.BASE}/dashboard/process-services/${doc.fileId}/success`
+            );
+          }
         } else {
-          res.redirect(
-            `${config.BASE}/dashboard/process-services/${doc.uuid}/error`
-          );
+          if (req.freeUser) {
+            res.redirect(`${config.BASE}?pay=error&uuid=${doc.uuid}`);
+          } else {
+            res.redirect(
+              `${config.BASE}/dashboard/process-services/${doc.uuid}/error`
+            );
+          }
         }
       }
     });

@@ -5,7 +5,7 @@
     "database": "pangeamt_production",
     "host": "prod.pangeamt.com",
     "dialect": "mysql",
-    "BASE": "http://localhost:3000"
+    "BASE": "http://localhost:3002"
   },
   "test": {
     "username": "root",
