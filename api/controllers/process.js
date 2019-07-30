@@ -11,7 +11,6 @@ const Engines = db.Engines;
 
 const _ = require("lodash");
 const map = require("async/map");
-const mapSeries = require("async/mapSeries");
 
 const mailer = require("./../util/mailer");
 const paypal = require("./../util/paypal");
@@ -41,6 +40,86 @@ const filterEngines = (engines, types) => {
     }
   }
   return newArrays;
+};
+
+const consultAndCreate = async (res, data) => {
+  const {
+    username,
+    secret,
+    processId,
+    processName,
+    engineId,
+    engineName,
+    engineDomain,
+    engineSource,
+    engineTarget,
+    files
+  } = data;
+
+  map(
+    files,
+    async item => {
+      const fileName = item.fileName;
+      const fileType = item.fileType;
+      const file = item.file.replace(`data:${fileType};base64,`, "");
+      const process = await Process.create({
+        fileName,
+        // fileId,
+        status: "waiting",
+        fileType,
+        processId,
+        processName,
+        engineId,
+        engineName,
+        engineDomain,
+        engineSource,
+        engineTarget,
+        secret,
+        email: username
+      });
+
+      const quote = await externalApi.quoteFile(
+        username,
+        engineSource,
+        engineTarget,
+        engineId,
+        fileName,
+        fileType,
+        file
+      );
+
+      const error = quote.data.error;
+      const errorMessage = quote.data.errormessage;
+      const fileId = quote.data.fileId;
+
+      if (error !== 0 && fileId) {
+        await Process.update(
+          {
+            fileId
+          },
+          {
+            where: {
+              id: process.id
+            }
+          }
+        );
+        return true;
+      } else {
+        throw new Error(errorMessage);
+      }
+    },
+    err => {
+      if (err) {
+        return res.status(500).send({
+          error: err
+        });
+      }
+      mailer.main(username, "received", null, true);
+      return res.status(200).json({
+        data: "ok"
+      });
+    }
+  );
 };
 
 module.exports = {
@@ -207,84 +286,22 @@ module.exports = {
     }
   },
 
-  sendFileToExternalProcess: async (req, res) => {
+  sendFileToExternalProcess: (req, res) => {
     try {
-      const username = req.body.email;
-      const secret = req.body.secret;
-      const processId = req.body.process.id;
-      const processName = req.body.process.name;
-      const engineId = req.body.engine.id;
-      const engineName = req.body.engine.name;
-      const engineDomain = req.body.engine.domain;
-      const engineSource = req.body.engine.source;
-      const engineTarget = req.body.engine.target;
+      const data = {
+        username: req.body.email,
+        secret: req.body.secret,
+        processId: req.body.process.id,
+        processName: req.body.process.name,
+        engineId: req.body.engine.id,
+        engineName: req.body.engine.name,
+        engineDomain: req.body.engine.domain,
+        engineSource: req.body.engine.source,
+        engineTarget: req.body.engine.target,
+        files: req.body.files
+      };
 
-      const files = req.body.files;
-
-      mapSeries(
-        files,
-        (item, cbm) => {
-          const fileName = item.fileName;
-          const fileType = item.fileType;
-          const file = item.file.replace(`data:${fileType};base64,`, "");
-          externalApi
-            .quoteFile(
-              username,
-              engineSource,
-              engineTarget,
-              engineId,
-              fileName,
-              fileType,
-              file
-            )
-            .then(result => {
-              const error = result.data.error;
-              const errorMessage = result.data.errormessage;
-              const fileId = result.data.fileId;
-              if (error !== 0 && fileId) {
-                Process.create({
-                  fileName,
-                  fileId,
-                  status: "waiting",
-                  fileType,
-                  processId,
-                  processName,
-                  engineId,
-                  engineName,
-                  engineDomain,
-                  engineSource,
-                  engineTarget,
-                  secret,
-                  email: username
-                })
-                  .then(() => {
-                    cbm(null, true);
-                  })
-                  .catch(err => {
-                    cbm(err, null);
-                  });
-              } else {
-                cbm(errorMessage, null);
-              }
-            })
-            .catch(err => {
-              cbm(err, null);
-            });
-        },
-        err => {
-          if (err) {
-            return res.status(500).send({
-              error: err
-            });
-          } else {
-            mailer.main(username, "received", null, true);
-
-            return res.status(200).json({
-              data: "ok"
-            });
-          }
-        }
-      );
+      return consultAndCreate(res, data);
     } catch (error) {
       return res.status(500).send({
         error: error
@@ -705,7 +722,7 @@ module.exports = {
     if (!uuid) {
       res.redirect(`${config.BASE}/404`);
     } else {
-      res.redirect(`${config.BASE}?pay=cancel&uuid=${uuid}`);
+      res.redirect(`${config.BASE}/process/${uuid}/cancel`);
     }
   },
 

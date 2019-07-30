@@ -89,7 +89,7 @@ const pay = async (req, res) => {
       if (req.userId) {
         res.redirect(`${config.BASE}/dashboard/process-services/${uuid}/error`);
       } else {
-        res.redirect(`${config.BASE}?pay=error&uuid=${uuid}`);
+        res.redirect(`${config.BASE}/process/${uuid}/error`);
       }
     } else {
       //capture HATEOAS links
@@ -110,7 +110,7 @@ const pay = async (req, res) => {
             `${config.BASE}/dashboard/process-services/${uuid}/error`
           );
         } else {
-          res.redirect(`${config.BASE}?pay=error&uuid=${uuid}`);
+          res.redirect(`${config.BASE}/process/${uuid}/error`);
         }
       }
     }
@@ -134,7 +134,7 @@ const execute = async (req, res) => {
     paypal.payment.execute(paymentId, payerId, async (error, payment) => {
       if (error) {
         if (req.freeUser) {
-          res.redirect(`${config.BASE}?pay=error&uuid=${doc.uuid}`);
+          res.redirect(`${config.BASE}/process/${uuid}/error`);
         } else {
           res.redirect(
             `${config.BASE}/dashboard/process-services/${uuid}/error`
@@ -180,7 +180,7 @@ const execute = async (req, res) => {
           await externalApi.processFileAfterQuoteFile(doc.fileId, quote);
 
           if (req.freeUser) {
-            res.redirect(`${config.BASE}?pay=success&fileId=${doc.fileId}`);
+            res.redirect(`${config.BASE}/process/${doc.fileId}/success`);
           } else {
             res.redirect(
               `${config.BASE}/dashboard/process-services/${doc.fileId}/success`
@@ -188,7 +188,7 @@ const execute = async (req, res) => {
           }
         } else {
           if (req.freeUser) {
-            res.redirect(`${config.BASE}?pay=error&uuid=${doc.uuid}`);
+            res.redirect(`${config.BASE}/process/${doc.uuid}/error`);
           } else {
             res.redirect(
               `${config.BASE}/dashboard/process-services/${doc.uuid}/error`
