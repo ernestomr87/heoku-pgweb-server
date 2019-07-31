@@ -2,7 +2,7 @@
   "development": {
     "username": "root",
     "password": "epastor",
-    "database": "pgweb_production",
+    "database": "pangeamt_production",
     "host": "prod.pangeamt.com",
     "dialect": "mysql",
     "BASE": "http://localhost:3002"
@@ -10,14 +10,14 @@
   "test": {
     "username": "root",
     "password": "epastor",
-    "database": "pgweb_production",
+    "database": "pangeamt_production",
     "host": "prod.pangeamt.com",
     "dialect": "mysql"
   },
   "production": {
     "username": "root",
     "password": "epastor",
-    "database": "pgweb_production",
+    "database": "pangeamt_production",
     "database_dashboard": "relay",
     "host": "prod.pangeamt.com",
     "dialect": "mysql",
