@@ -8,8 +8,11 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      billingAddress: Sequelize.STRING,
-      nif: Sequelize.STRING,
+      name: DataTypes.STRING,
+      address: DataTypes.STRING,
+      country: DataTypes.STRING,
+      continent: DataTypes.STRING,
+      vattax: DataTypes.STRING, //VAT/TAX number
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

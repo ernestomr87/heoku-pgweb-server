@@ -1,13 +1,33 @@
 var paypal = require("paypal-rest-sdk");
 const db = require("./../../db/models");
 const Process = db.Process;
+const BillingInformation = db.BillingInformation;
 const externalApi = require("./../external_api/api");
 const env = process.env.NODE_ENV || "production";
 const config = require("./../../config/config.json")[env];
 
+const calculatePrice = (price, applyTax) => {
+  let aux = price.toFixed(2);
+  if (aux === "0.00") aux = "0.01";
+
+  if (applyTax) {
+    const tax = ((parseFloat(aux) * 21) / 100).toFixed(2);
+    aux = parseFloat(aux) + parseFloat(tax);
+  }
+  return aux;
+};
+
 const pay = async (req, res) => {
   const uuid = req.body.uuid;
   const quote = req.body.quote;
+
+  const billing = req.body.billing ? JSON.parse(req.body.billing) : null;
+  const applyTax = billing
+    ? billing.continent === "EU"
+      ? true
+      : false
+    : false;
+
   if (!uuid || !quote) {
     if (req.userId) {
       return res.redirect(`${config.BASE}/dashboard/404`);
@@ -21,6 +41,17 @@ const pay = async (req, res) => {
       uuid: uuid
     }
   });
+
+  if (billing) {
+    const billingInfo = await BillingInformation.create({
+      name: billing.name,
+      address: billing.address,
+      country: billing.country,
+      continent: billing.continent,
+      vattax: billing.vattax //VAT/TAX number
+    });
+    await billingInfo.setProcess(process);
+  }
 
   const selected = process.quotes.filter(item => {
     return item.optionid === parseInt(quote);
@@ -69,7 +100,7 @@ const pay = async (req, res) => {
             {
               name: `${process.processName}--${process.fileName}`,
               sku: process.id,
-              price: selected[0].price.toFixed(2),
+              price: calculatePrice(selected[0].price, applyTax),
               currency: "EUR",
               quantity: 1
             }
