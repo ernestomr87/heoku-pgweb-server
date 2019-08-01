@@ -1,11 +1,11 @@
-const db = require('./../../db/models');
-const config = require('./../../config/config');
+const db = require("./../../db/models");
+const config = require("./../../config/config");
 const User = db.User;
 const Notification = db.Notification;
 const TypeOfPermits = db.TypeOfPermits;
 
-var jwt = require('jsonwebtoken');
-var bcrypt = require('bcryptjs');
+var jwt = require("jsonwebtoken");
+var bcrypt = require("bcryptjs");
 
 exports.signup = (req, res) => {
   // Save User to Database
@@ -13,26 +13,25 @@ exports.signup = (req, res) => {
     fullName: req.body.fullName,
     email: req.body.email,
     password: bcrypt.hashSync(req.body.password, 8),
-    rol: 'user'
+    rol: "user"
   })
     .then(() => {
-      res.send('User registered successfully!');
+      res.send("User registered successfully!");
     })
     .catch(err => {
-      res.status(500).send('Fail! Error -> ' + err);
+      res.status(500).send("Fail! Error -> " + err);
     });
 };
 
 exports.signin = (req, res) => {
-    User.findOne({
+  User.findOne({
     where: {
       email: req.body.email
     }
   })
     .then(user => {
-
       if (!user) {
-        return res.status(404).send('User Not Found.');
+        return res.status(404).send("User Not Found.");
       }
 
       var passwordIsValid = bcrypt.compareSync(
@@ -43,7 +42,7 @@ exports.signin = (req, res) => {
         return res.status(401).send({
           auth: false,
           accessToken: null,
-          reason: 'Invalid Password!'
+          reason: "Invalid Password!"
         });
       }
 
@@ -52,6 +51,7 @@ exports.signin = (req, res) => {
           id: user.id,
           email: user.email,
           rol: user.rol,
+          hasClient: user.UserId,
           TypeOfPermitId: user.TypeOfPermitId
         },
         config.secret,
@@ -66,27 +66,28 @@ exports.signin = (req, res) => {
         id: user.id,
         email: user.email,
         rol: user.rol,
+        hasClient: user.UserId,
         typeOfUser: user.typeOfUser
       });
     })
     .catch(err => {
-        console.log(err);
+      console.log(err);
 
-        res.status(500).send('Error -> ' + err);
+      res.status(500).send("Error -> " + err);
     });
 };
 
 exports.userContent = (req, res) => {
-  console.log("------------------------")
+  console.log("------------------------");
   User.findOne({
     where: {
       id: req.userId
     },
-    attributes: ['fullName', 'email', 'id', 'rol', 'typeOfUser'],
+    attributes: ["fullName", "email", "id", "rol", "typeOfUser"],
     include: [
       {
         model: Notification,
-        attributes: ['type', 'data', 'check']
+        attributes: ["type", "data", "check"]
       },
       {
         model: TypeOfPermits
@@ -100,7 +101,7 @@ exports.userContent = (req, res) => {
     })
     .catch(err => {
       res.status(500).json({
-        description: 'Can not access User Page',
+        description: "Can not access User Page",
         error: err
       });
     });

@@ -19,6 +19,7 @@ let process = controllers.process;
 let typeOfPermits = controllers.typeOfPermits;
 let users = controllers.users;
 let dashboard = controllers.dashboard;
+let billing = controllers.billing;
 
 const router = express.Router();
 
@@ -112,6 +113,11 @@ router.post(
 router.get("/api/configuration", configuration.getConfiguration);
 router.put("/api/paypal", configuration.setPaypal);
 router.put("/api/email", configuration.setEmailNotification);
+
+//BILLING INFO
+router.get("/api/billing", [verifyToken], billing.get);
+router.post("/api/billing", [verifyToken], billing.add);
+router.put("/api/billing", [verifyToken], billing.edit);
 
 //PAYMENTS
 router.post("/api/payment/pay", process.pay);

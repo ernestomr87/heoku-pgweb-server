@@ -23,6 +23,7 @@ const verifyToken = async (req, res, next) => {
     req.userId = decoded.id;
     req.userEmail = decoded.email;
     req.userRol = decoded.rol;
+    req.hasClient = decoded.UserId;
     req.userTypeOfPermitId = decoded.TypeOfPermitId;
     next();
   });

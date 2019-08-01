@@ -6,6 +6,7 @@ const process = require("./process");
 const typeOfPermits = require("./typeOfPermits");
 const users = require("./users");
 const dashboard = require("./dashboard");
+const billing = require("./billing");
 
 module.exports = {
   auth,
@@ -13,5 +14,6 @@ module.exports = {
   process,
   typeOfPermits,
   users,
-  dashboard
+  dashboard,
+  billing
 };

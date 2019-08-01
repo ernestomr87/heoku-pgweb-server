@@ -108,7 +108,7 @@ const pay = async (req, res) => {
         },
         amount: {
           currency: "EUR",
-          total: selected[0].price.toFixed(2)
+          total: calculatePrice(selected[0].price, applyTax)
         },
         description: selected[0].option
       }
