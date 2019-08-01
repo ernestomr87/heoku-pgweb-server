@@ -7,6 +7,7 @@ const User = db.User;
 const Process = db.Process;
 const TypeOfPermits = db.TypeOfPermits;
 const Notification = db.Notification;
+const BillingInformation = db.BillingInformation;
 const Engines = db.Engines;
 
 const _ = require("lodash");
@@ -149,9 +150,28 @@ module.exports = {
           "quoteSelected"
         ]
       });
+      let bi = null;
+      if (
+        req.userRol === "client" ||
+        (req.userRol === "user" && !req.hasClient)
+      ) {
+        bi = await BillingInformation.findOne({
+          where: {
+            UserId: req.userId
+          }
+        });
+      }
+      if (req.userRol === "user" && req.hasClient) {
+        bi = await BillingInformation.findOne({
+          where: {
+            UserId: req.hasClient
+          }
+        });
+      }
 
       return res.status(200).send({
-        process
+        process,
+        billingInformation: bi
       });
     } catch (err) {
       res.status(500).json({
