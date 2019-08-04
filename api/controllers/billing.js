@@ -3,39 +3,44 @@ const BillingInformation = db.BillingInformation;
 const User = db.User;
 
 exports.get = async (req, res) => {
+  let uid = null;
   if (req.userRol === "admin") {
-    const userId = req.query.userId;
-  } else if (
-    req.userRol === "client" ||
-    (req.userRol === "user" && !req.hasClient)
-  ) {
-    const bi = await BillingInformation.findOne({
-      where: {
-        UserId: req.userId
+    uid = req.query.userId;
+  }
+  if (req.userRol === "client" || (req.userRol === "user" && !req.hasClient)) {
+    uid = req.userId;
+  }
+  if (req.userRol === "user" && req.hasClient) {
+    uid = req.hasClient;
+  }
+
+  const bi = await BillingInformation.findOne({
+    where: {
+      UserId: uid
+    }
+  });
+
+  if (bi.id) {
+    return res.status(200).send({
+      data: {
+        id: bi.id,
+        name: bi.name,
+        address: bi.address,
+        country: bi.country,
+        vattax: bi.vattax
       }
     });
-
-    if (bi.id) {
-      return res.status(200).send({
-        data: {
-          id: bi.id,
-          name: bi.name,
-          address: bi.address,
-          country: bi.country,
-          vattax: bi.vattax
-        }
-      });
-    } else {
-      return res.status(200).send({
-        data: {
-          name: "",
-          address: "",
-          country: "ES",
-          vattax: ""
-        }
-      });
-    }
+  } else {
+    return res.status(200).send({
+      data: {
+        name: "",
+        address: "",
+        country: "ES",
+        vattax: ""
+      }
+    });
   }
+
   return res.status(403).json({
     error: "Forbidden !!"
   });

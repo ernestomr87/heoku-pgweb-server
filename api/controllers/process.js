@@ -443,91 +443,88 @@ module.exports = {
       const engineDomain = req.body.engine.domain;
       const engineSource = req.body.engine.source;
       const engineTarget = req.body.engine.target;
-
       const files = req.body.files;
 
       map(
         files,
-        (item, cbm) => {
+        async item => {
           const fileName = item.fileName;
           const fileType = item.fileType;
           const file = item.file.replace(`data:${fileType};base64,`, "");
+          const process = await Process.create({
+            fileName,
+            // fileId,
+            status: "waiting",
+            fileType,
+            processId,
+            processName,
+            engineId,
+            engineName,
+            engineDomain,
+            engineSource,
+            engineTarget,
+            email: username
+          });
 
-          externalApi
-            .quoteFile(
-              username,
-              engineSource,
-              engineTarget,
-              engineId,
-              fileName,
-              fileType,
-              file
-            )
-            .then(result => {
-              const error = result.data.error;
-              const errorMessage = result.data.errormessage;
-              const fileId = result.data.fileId;
-              if (error !== 0 && fileId) {
-                if (req.userId) {
-                  User.findOne({
-                    where: {
-                      id: req.userId
-                    }
-                  })
-                    .then(user => {
-                      Process.create({
-                        fileName,
-                        fileId,
-                        status: "waiting",
-                        fileType,
-                        processId,
-                        processName,
-                        engineId,
-                        engineName,
-                        engineDomain,
-                        engineSource,
-                        engineTarget
-                      })
-                        .then(process => {
-                          user
-                            .addProcess(process)
-                            .then(function() {
-                              cbm(null, true);
-                            })
-                            .catch(err => {
-                              cbm(err, null);
-                            });
-                        })
-                        .catch(err => {
-                          cbm(err, null);
-                        });
-                    })
-                    .catch(err => {
-                      cbm(err, null);
-                    });
-                } else {
-                  cbm(null, true);
-                }
-              } else {
-                cbm(errorMessage, null);
+          const quote = await externalApi.quoteFile(
+            username,
+            engineSource,
+            engineTarget,
+            engineId,
+            fileName,
+            fileType,
+            file
+          );
+
+          const error = quote.data.error;
+          const errorMessage = quote.data.errormessage;
+          const fileId = quote.data.fileId;
+
+          if (error !== 0 && fileId && req.userId) {
+            const user = await User.findOne({
+              where: {
+                id: req.userId
               }
-            })
-            .catch(err => {
-              res.status(400).send({
-                error: err
-              });
             });
+            let aux = null;
+            if (user.UserId) {
+              const client = await User.findOne({
+                where: {
+                  id: user.UserId
+                }
+              });
+              if (client) {
+                aux = client.email;
+              }
+            }
+
+            await Process.update(
+              {
+                fileId,
+                client: aux
+              },
+              {
+                where: {
+                  id: process.id
+                }
+              }
+            );
+            user.addProcess(process);
+
+            return true;
+          } else {
+            throw new Error(errorMessage);
+          }
         },
         err => {
           if (err) {
             return res.status(500).send({
-              error: error
-            });
-          } else {
-            return res.status(200).json({
-              data: "ok"
+              error: err
             });
           }
+          return res.status(200).json({
+            data: "ok"
+          });
         }
       );
     } catch (error) {

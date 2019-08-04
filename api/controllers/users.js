@@ -15,42 +15,48 @@ const TypeOfPermits = db.TypeOfPermits;
 
 exports.listAll = async (req, res) => {
   try {
-    let users;
+    let query = {
+      attributes: ["id", "fullName", "email", "rol", "typeOfUser", "UserId"],
+      include: [
+        {
+          model: TypeOfPermits
+        }
+      ],
+      where: {
+        id: {
+          [Op.ne]: req.userId
+        },
+        remove: false
+      }
+    };
     if (req.userRol === "client") {
-      const users = await User.findAll({
-        attributes: ["id", "fullName", "email", "rol", "typeOfUser"],
-        include: [
-          {
-            model: TypeOfPermits
-          }
-        ],
-        where: {
-          userId: req.userId,
-          remove: false
-        }
-      });
-
-      // users = await user.getUsers();
-      return res.status(200).send({
-        users
-      });
-    } else {
-      users = await User.findAll({
-        attributes: ["id", "fullName", "email", "rol", "typeOfUser"],
-        include: [
-          {
-            model: TypeOfPermits
-          }
-        ],
-        where: {
-          remove: false
-        }
-      });
-
-      return res.status(200).send({
-        users
-      });
+      query.where.userId = req.userId;
     }
+    const users = await User.findAll(query);
+
+    map(
+      users,
+      async item => {
+        item.dataValues["client"] = "---";
+        if (item.UserId) {
+          const user = await User.findByPk(item.UserId);
+          item.dataValues["client"] = user.email;
+        }
+
+        return item;
+      },
+      async (err, results) => {
+        if (err) {
+          return res.status(500).send({
+            error: err
+          });
+        } else {
+          return res.status(200).send({
+            users: results
+          });
+        }
+      }
+    );
   } catch (err) {
     return res.status(500).send({
       error: err
@@ -489,51 +495,83 @@ exports.adminDashboard = async (req, res) => {
 
     map(
       qs,
-      (item, cbm) => {
-        Process.findAll({
+      async item => {
+        const register = await Process.findAll({
+          UserId: {
+            [Op.ne]: null
+          },
           where: {
             createdAt: {
               [Op.lt]: item.end,
               [Op.gt]: item.start
             }
           }
-        })
-          .then(docs => {
-            let value = 0;
-            let complete = 0;
-            let status = {};
+        });
 
-            if (docs.length) {
-              docs.map(item => {
-                if (item.quoteSelected && item.quoteSelected.price) {
-                  value = value + item.quoteSelected.price;
-                }
-                if (
-                  item.status === "finished" ||
-                  item.status === "downloaded"
-                ) {
-                  complete = complete + 1;
-                }
-                if (status[item.status]) {
-                  status[item.status] = status[item.status] + 1;
-                } else {
-                  status[item.status] = 1;
-                }
-              });
+        const casual = await Process.findAll({
+          where: {
+            UserId: null,
+            createdAt: {
+              [Op.lt]: item.end,
+              [Op.gt]: item.start
             }
+          }
+        });
 
-            item.complete = complete;
-            item.count = docs.length;
-            item.value = value;
-            item.status = status;
-            item.start = item.start.valueOf();
-            item.end = item.end.valueOf();
+        let rvalue = 0;
+        let rcomplete = 0;
+        let rstatus = {};
 
-            cbm(null, item);
-          })
-          .catch(err => {
-            cbm(err, null);
+        let cvalue = 0;
+        let ccomplete = 0;
+        let cstatus = {};
+
+        if (register.length) {
+          register.map(elem => {
+            if (elem.quoteSelected && elem.quoteSelected.price) {
+              rvalue = rvalue + elem.quoteSelected.price;
+            }
+            if (elem.status === "finished" || elem.status === "downloaded") {
+              rcomplete = rcomplete + 1;
+            }
+            if (rstatus[elem.status]) {
+              rstatus[elem.status] = rstatus[elem.status] + 1;
+            } else {
+              rstatus[elem.status] = 1;
+            }
           });
+        }
+
+        if (casual.length) {
+          process.map(elem => {
+            if (elem.quoteSelected && elem.quoteSelected.price) {
+              cvalue = cvalue + elem.quoteSelected.price;
+            }
+            if (elem.status === "finished" || elem.status === "downloaded") {
+              ccomplete = ccomplete + 1;
+            }
+            if (cstatus[elem.status]) {
+              cstatus[elem.status] = cstatus[elem.status] + 1;
+            } else {
+              cstatus[elem.status] = 1;
+            }
+          });
+        }
+
+        item.rcomplete = rcomplete;
+        item.rcount = register.length;
+        item.rvalue = rvalue;
+        item.rstatus = rstatus;
+
+        item.ccomplete = ccomplete;
+        item.ccount = casual.length;
+        item.cvalue = cvalue;
+        item.cstatus = cstatus;
+
+        item.start = item.start.valueOf();
+        item.end = item.end.valueOf();
+
+        return item;
       },
       async (err, results) => {
         if (err) {
