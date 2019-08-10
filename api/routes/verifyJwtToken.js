@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const config = require("./../../config/config");
+const config = require(`./../../config/${process.env.NODE_APP}.json`);
 const db = require("./../../db/models/index");
 const User = db.User;
 

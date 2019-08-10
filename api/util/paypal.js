@@ -4,7 +4,7 @@ const Process = db.Process;
 const BillingInformation = db.BillingInformation;
 const externalApi = require("./../external_api/api");
 const env = process.env.NODE_ENV || "production";
-const config = require("./../../config/config.json")[env];
+const config = require("./../../config/env.json")[env];
 
 const calculatePrice = (price, applyTax) => {
   let aux = price.toFixed(2);

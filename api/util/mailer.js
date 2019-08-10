@@ -5,7 +5,7 @@ let template = require("./emailTemplate");
 
 const db = require("./../../db/models");
 const Configuration = db.Configuration;
-const config = require("./../../config/config.json");
+const config = require(`./../../config/${process.env.NODE_APP}.json`);
 
 let testAccount = {
   user: config.mailer.user,

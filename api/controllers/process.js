@@ -17,12 +17,14 @@ const mailer = require("./../util/mailer");
 const paypal = require("./../util/paypal");
 
 const externalApi = require("../external_api/api");
-const apiKey = require("./../../config/config")["apiKey"];
-const allowedFiles = require("./../../config/config")["allowedFiles"];
+const apiKey = require(`./../../config/${process.env.NODE_APP}.json`)["apiKey"];
+const allowedFiles = require(`./../../config/${process.env.NODE_APP}.json`)[
+  "allowedFiles"
+];
 const { getStatus } = require("./../util/functions");
 
 const env = process.env.NODE_ENV || "production";
-const config = require("./../../config/config.json")[env];
+const config = require("./../../config/env.json")[env];
 
 const filterEngines = (engines, types) => {
   let newArrays = [];

@@ -1,5 +1,5 @@
 const db = require("./../../db/models");
-const config = require("./../../config/config");
+const config = require(`./../../config/${process.env.NODE_APP}.json`);
 const User = db.User;
 const Notification = db.Notification;
 const TypeOfPermits = db.TypeOfPermits;

@@ -1,5 +1,5 @@
 "use strict";
-const apiKey = require("./../../config/config")["apiKey"];
+const apiKey = require(`./../../config/${process.env.NODE_APP}.json`)["apiKey"];
 const axios = require("axios");
 const pageanApiAddress = "http://prod.pangeamt.com:8080/PGFile/v1/";
 

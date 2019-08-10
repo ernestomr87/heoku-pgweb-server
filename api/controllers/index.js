@@ -5,7 +5,6 @@ const configuration = require("./configuration");
 const process = require("./process");
 const typeOfPermits = require("./typeOfPermits");
 const users = require("./users");
-const dashboard = require("./dashboard");
 const billing = require("./billing");
 
 module.exports = {
@@ -14,6 +13,5 @@ module.exports = {
   process,
   typeOfPermits,
   users,
-  dashboard,
   billing
 };

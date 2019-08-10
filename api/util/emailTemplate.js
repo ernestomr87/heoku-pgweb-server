@@ -1,7 +1,9 @@
-const template = (email, status, uuid, freeUser) => {
-  const url = `http://pgweb.pangeamt.com:3002/main/download/${uuid}`;
-  let table;
+const common = require("./../../config/common");
 
+const template = (email, status, uuid, freeUser) => {
+  let table;
+  const url = common.urls.download(uuid);
+  console.log(url);
   if (freeUser && (status === "quoting" || status === "downloaded")) {
     table = `
     <table role="" border="0" cellpadding="0" cellspacing="0">
