@@ -543,7 +543,7 @@ exports.adminDashboard = async (req, res) => {
         }
 
         if (casual.length) {
-          process.map(elem => {
+          casual.map(elem => {
             if (elem.quoteSelected && elem.quoteSelected.price) {
               cvalue = cvalue + elem.quoteSelected.price;
             }
