@@ -3,9 +3,6 @@ let verifySignUp = require("./verifySignUp");
 let verifyJwtToken = require("./verifyJwtToken");
 let controllers = require("./../controllers");
 
-var multer = require("multer");
-var upload = multer({ dest: "uploads/" });
-
 let checkDuplicateUserNameOrEmail = verifySignUp.checkDuplicateUserNameOrEmail;
 let verifyToken = verifyJwtToken.verifyToken;
 let isAdmin = verifyJwtToken.isAdmin;
@@ -18,13 +15,9 @@ let configuration = controllers.configuration;
 let process = controllers.process;
 let typeOfPermits = controllers.typeOfPermits;
 let users = controllers.users;
-let dashboard = controllers.dashboard;
 let billing = controllers.billing;
 
 const router = express.Router();
-
-// DASHBOARD
-router.get("/api/dashboard", dashboard.get);
 
 // EXTERNAL PANGEAMT
 router.get("/api/engines", process.getExternalEngines);
@@ -125,7 +118,5 @@ router.get("/api/payment/:uuid/:quote/return", process.return);
 router.get("/api/payment/:uuid/cancel", process.cancel);
 router.get("/api/payment/:uuid/:quote/return_free", process.return_free);
 router.get("/api/payment/:uuid/cancel_free", process.cancel_free);
-
-// router.post('/api/email', mailer.main('ernestomr87@gmail.com',''));
 
 module.exports = router;

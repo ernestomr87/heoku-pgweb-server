@@ -737,9 +737,9 @@ module.exports = {
   cancel_free: async (req, res) => {
     const uuid = req.params.uuid;
     if (!uuid) {
-      res.redirect(`${config.BASE}/404`);
+      res.redirect(`${config.BASE}/main/404`);
     } else {
-      res.redirect(`${config.BASE}/process/${uuid}/cancel`);
+      res.redirect(`${config.BASE}/main/process/${uuid}/cancel`);
     }
   },
 

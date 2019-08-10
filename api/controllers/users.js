@@ -4,9 +4,7 @@ const Op = Sequelize.Op;
 const bcrypt = require("bcryptjs");
 
 const moment = require("moment");
-
 const map = require("async/map");
-const parallel = require("async/parallel");
 
 const db = require("./../../db/models");
 const User = db.User;
@@ -596,7 +594,6 @@ exports.adminDashboard = async (req, res) => {
     });
   }
 };
-
 exports.ownerClientDashboard = async (req, res) => {
   try {
     let qs = [];

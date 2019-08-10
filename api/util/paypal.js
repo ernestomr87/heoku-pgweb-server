@@ -32,7 +32,7 @@ const pay = async (req, res) => {
     if (req.userId) {
       return res.redirect(`${config.BASE}/dashboard/404`);
     } else {
-      return res.redirect(`${config.BASE}/404`);
+      return res.redirect(`${config.BASE}/main/404`);
     }
   }
 
@@ -61,7 +61,7 @@ const pay = async (req, res) => {
     if (req.userId) {
       return res.redirect(`${config.BASE}/dashboard/404`);
     } else {
-      return res.redirect(`${config.BASE}/404`);
+      return res.redirect(`${config.BASE}/main/404`);
     }
   }
 
@@ -120,7 +120,7 @@ const pay = async (req, res) => {
       if (req.userId) {
         res.redirect(`${config.BASE}/dashboard/process-services/${uuid}/error`);
       } else {
-        res.redirect(`${config.BASE}/process/${uuid}/error`);
+        res.redirect(`${config.BASE}/main/process/${uuid}/error`);
       }
     } else {
       //capture HATEOAS links
@@ -141,7 +141,7 @@ const pay = async (req, res) => {
             `${config.BASE}/dashboard/process-services/${uuid}/error`
           );
         } else {
-          res.redirect(`${config.BASE}/process/${uuid}/error`);
+          res.redirect(`${config.BASE}/main/process/${uuid}/error`);
         }
       }
     }
@@ -157,7 +157,7 @@ const execute = async (req, res) => {
 
   if (!uuid || !paymentId || !payerId) {
     if (req.freeUser) {
-      res.redirect(`${config.BASE}/404`);
+      res.redirect(`${config.BASE}/main/404`);
     } else {
       res.redirect(`${config.BASE}/dashboard/404`);
     }
@@ -165,7 +165,7 @@ const execute = async (req, res) => {
     paypal.payment.execute(paymentId, payerId, async (error, payment) => {
       if (error) {
         if (req.freeUser) {
-          res.redirect(`${config.BASE}/process/${uuid}/error`);
+          res.redirect(`${config.BASE}/main/process/${uuid}/error`);
         } else {
           res.redirect(
             `${config.BASE}/dashboard/process-services/${uuid}/error`
@@ -185,9 +185,9 @@ const execute = async (req, res) => {
 
           if (!selected || !selected.length) {
             if (req.freeUser) {
-              res.redirect(`${config.BASE}/404`);
+              res.redirect(`${config.BASE}/main/404`);
             } else {
-              res.redirect(`${config.BASE}/dashboard/404`);
+              res.redirect(`${config.BASE}/main/dashboard/404`);
             }
           }
 
@@ -211,7 +211,7 @@ const execute = async (req, res) => {
           await externalApi.processFileAfterQuoteFile(doc.fileId, quote);
 
           if (req.freeUser) {
-            res.redirect(`${config.BASE}/process/${doc.fileId}/success`);
+            res.redirect(`${config.BASE}/main/process/${doc.fileId}/success`);
           } else {
             res.redirect(
               `${config.BASE}/dashboard/process-services/${doc.fileId}/success`
@@ -219,7 +219,7 @@ const execute = async (req, res) => {
           }
         } else {
           if (req.freeUser) {
-            res.redirect(`${config.BASE}/process/${doc.uuid}/error`);
+            res.redirect(`${config.BASE}/main/process/${doc.uuid}/error`);
           } else {
             res.redirect(
               `${config.BASE}/dashboard/process-services/${doc.uuid}/error`

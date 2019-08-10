@@ -114,30 +114,3 @@ exports.userContent = (req, res) => {
       });
     });
 };
-// exports.userContent = async (req, res) => {
-//   try {
-//     const user = User.findOne({
-//       where: {
-//         id: req.userId
-//       },
-//       attributes: ["fullName", "email", "id", "rol", "typeOfUser", "UserId"],
-//       include: [
-//         {
-//           model: Notification,
-//           attributes: ["type", "data", "check"]
-//         },
-//         {
-//           model: TypeOfPermits
-//         }
-//       ]
-//     });
-//     res.status(200).json({
-//       user: user
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       description: "Can not access User Page",
-//       error: err
-//     });
-//   }
-// };
