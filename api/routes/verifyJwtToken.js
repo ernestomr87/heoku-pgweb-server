@@ -4,6 +4,7 @@ const db = require("./../../db/models/index");
 const User = db.User;
 
 const verifyToken = async (req, res, next) => {
+  console.log("\x1b[33m%s\x1b[0m","req.headers.origin", JSON.stringify(req.headers));
   let token = req.headers["x-access-token"] || req.body.token;
 
   if (!token) {

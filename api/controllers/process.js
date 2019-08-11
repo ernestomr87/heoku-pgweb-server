@@ -126,7 +126,7 @@ const consultAndCreate = async (res, data) => {
 
 module.exports = {
   getProcess: async (req, res) => {
-    console.log("\x1b[33m%s\x1b[0m", req.headers.origin);
+    console.log("\x1b[33m%s\x1b[0m","req.headers.origin", JSON.stringify(req.headers));
     try {
       const user = await User.findOne({
         where: {
