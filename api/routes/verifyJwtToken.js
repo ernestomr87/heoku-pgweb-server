@@ -1,28 +1,12 @@
 const jwt = require("jsonwebtoken");
+const requestIp = require("request-ip");
 const config = require(`./../../config/${process.env.NODE_APP}.json`);
 const db = require("./../../db/models/index");
 const User = db.User;
 
-function getClientIp(req) {
-  var ipAddress;
-  // The request may be forwarded from local web server.
-  var forwardedIpsStr = req.header("x-forwarded-for");
-  if (forwardedIpsStr) {
-    // 'x-forwarded-for' header may return multiple IP addresses in
-    // the format: "client IP, proxy 1 IP, proxy 2 IP" so take the
-    // the first one
-    var forwardedIps = forwardedIpsStr.split(",");
-    ipAddress = forwardedIps[0];
-  }
-  if (!ipAddress) {
-    // If request was not forwarded
-    ipAddress = req.connection.remoteAddress;
-  }
-  return ipAddress;
-}
-
 const verifyToken = async (req, res, next) => {
-  console.log("\x1b[33m%s\x1b[0m", "req.headers.origin", getClientIp(req));
+  const clientIp = requestIp.getClientIp(req);
+  console.log("\x1b[33m%s\x1b[0m", "req.headers.origin", clientIp);
   let token = req.headers["x-access-token"] || req.body.token;
 
   if (!token) {
