@@ -575,7 +575,10 @@ module.exports = {
    *  Notificaciones desde el motor de Traduccion
    */
   notification: async (req, res) => {
+    console.log("\x1b[33m%s\x1b[0m", "*******************************");
     console.log("\x1b[33m%s\x1b[0m", JSON.stringify(req.body));
+    console.log("\x1b[33m%s\x1b[0m", "*******************************");
+
     if (req.body.fileid && req.body.data) {
       let type = _.lowerCase(getStatus(req.body.data.status));
       type = _.replace(type, " ", "_");
