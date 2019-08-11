@@ -2,6 +2,7 @@
 const axios = require("axios");
 
 const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
+const BASE_URL=`${APP_CONFIG.host}:${APP_CONFIG.port}`,
 const API_KEY = APP_CONFIG.apiKey;
 const API_ENGINE = APP_CONFIG.enginesApi;
 
@@ -26,6 +27,7 @@ module.exports = {
       method: "post",
       url: `${API_ENGINE}processfile`,
       data: {
+        notiflink: `${BASE_URL}/api/notification`,
         username,
         API_KEY: API_KEY,
         source,
@@ -43,6 +45,7 @@ module.exports = {
       method: "post",
       url: `${API_ENGINE}processfile`,
       data: {
+        notiflink: `${BASE_URL}/api/notification`,
         fileId,
         processOptionId,
         API_KEY: API_KEY
@@ -63,6 +66,7 @@ module.exports = {
       method: "post",
       url: `${API_ENGINE}quotefile`,
       data: {
+        notiflink: `${BASE_URL}/api/notification`,
         username,
         API_KEY: API_KEY,
         source,
@@ -80,6 +84,7 @@ module.exports = {
       method: "post",
       url: `${API_ENGINE}filestatus`,
       data: {
+        notiflink: `${BASE_URL}/api/notification`,
         API_KEY: API_KEY,
         guids
       }
@@ -91,6 +96,7 @@ module.exports = {
       method: "post",
       url: `${API_ENGINE}retrievefile`,
       data: {
+        notiflink: `${BASE_URL}/api/notification`,
         API_KEY: API_KEY,
         guid
       }

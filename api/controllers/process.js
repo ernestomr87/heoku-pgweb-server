@@ -126,7 +126,11 @@ const consultAndCreate = async (res, data) => {
 
 module.exports = {
   getProcess: async (req, res) => {
-    console.log("\x1b[33m%s\x1b[0m","req.headers.origin", JSON.stringify(req.headers));
+    console.log(
+      "\x1b[33m%s\x1b[0m",
+      "req.headers.origin",
+      JSON.stringify(req.headers)
+    );
     try {
       const user = await User.findOne({
         where: {
@@ -575,6 +579,7 @@ module.exports = {
       let type = _.lowerCase(getStatus(req.body.data.status));
       type = _.replace(type, " ", "_");
       type = _.replace(type, "/", "_");
+      console.log("\x1b[33m%s\x1b[0m", "NOTIFICATION", type);
 
       let query = { status: type, uuid: uuidv4() };
 
