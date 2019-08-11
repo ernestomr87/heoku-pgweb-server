@@ -1,14 +1,15 @@
 "use strict";
-const apiKey = require(`./../../config/${process.env.NODE_APP}.json`)["apiKey"];
 const axios = require("axios");
-const pageanApiAddress = "http://prod.pangeamt.com:8080/PGFile/v1/";
+
+const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
+const API_KEY = APP_CONFIG.apiKey;
+const API_ENGINE = APP_CONFIG.enginesApi;
 
 module.exports = {
   describeEngines: function describeEngines() {
-    console.log(`${pageanApiAddress}describeengines/${apiKey}`);
     return axios({
       method: "get",
-      url: `${pageanApiAddress}describeengines/${apiKey}`
+      url: `${API_ENGINE}describeengines/${API_KEY}`
     });
   },
 
@@ -23,10 +24,10 @@ module.exports = {
   ) {
     return axios({
       method: "post",
-      url: `${pageanApiAddress}processfile`,
+      url: `${API_ENGINE}processfile`,
       data: {
         username,
-        apikey: apiKey,
+        API_KEY: API_KEY,
         source,
         target,
         engineid,
@@ -40,11 +41,11 @@ module.exports = {
   processFileAfterQuoteFile: function processFile(fileId, processOptionId) {
     return axios({
       method: "post",
-      url: `${pageanApiAddress}processfile`,
+      url: `${API_ENGINE}processfile`,
       data: {
         fileId,
         processOptionId,
-        apikey: apiKey
+        API_KEY: API_KEY
       }
     });
   },
@@ -60,10 +61,10 @@ module.exports = {
   ) {
     return axios({
       method: "post",
-      url: `${pageanApiAddress}quotefile`,
+      url: `${API_ENGINE}quotefile`,
       data: {
         username,
-        apikey: apiKey,
+        API_KEY: API_KEY,
         source,
         target,
         engineid,
@@ -77,9 +78,9 @@ module.exports = {
   filestatus: function retrieveFile(guids) {
     return axios({
       method: "post",
-      url: `${pageanApiAddress}filestatus`,
+      url: `${API_ENGINE}filestatus`,
       data: {
-        apikey: apiKey,
+        API_KEY: API_KEY,
         guids
       }
     });
@@ -88,9 +89,9 @@ module.exports = {
   retrievefile: function retrieveFile(guid) {
     return axios({
       method: "post",
-      url: `${pageanApiAddress}retrievefile`,
+      url: `${API_ENGINE}retrievefile`,
       data: {
-        apikey: apiKey,
+        API_KEY: API_KEY,
         guid
       }
     });

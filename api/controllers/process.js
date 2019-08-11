@@ -17,14 +17,13 @@ const mailer = require("./../util/mailer");
 const paypal = require("./../util/paypal");
 
 const externalApi = require("../external_api/api");
-const apiKey = require(`./../../config/${process.env.NODE_APP}.json`)["apiKey"];
-const allowedFiles = require(`./../../config/${process.env.NODE_APP}.json`)[
-  "allowedFiles"
-];
-const { getStatus } = require("./../util/functions");
 
-const env = process.env.NODE_ENV || "production";
-const config = require("./../../config/env.json")[env];
+const CONFIG_APP = require(`./../../config/${process.env.NODE_APP}.json`);
+const common = require("./../../config/common");
+const apiKey = CONFIG_APP.apiKey;
+const allowedFiles = CONFIG_APP.allowedFiles;
+
+const { getStatus } = require("./../util/functions");
 
 const filterEngines = (engines, types) => {
   let newArrays = [];
@@ -726,9 +725,9 @@ module.exports = {
   cancel: async (req, res) => {
     const uuid = req.params.uuid;
     if (!uuid) {
-      res.redirect(`${config.BASE}/dashboard/404`);
+      res.redirect(common.urls.register_404);
     } else {
-      res.redirect(`${config.BASE}/dashboard/process-services/${uuid}/cancel`);
+      res.redirect(common.urls.register_cancel(uuid));
     }
   },
 
@@ -739,9 +738,9 @@ module.exports = {
   cancel_free: async (req, res) => {
     const uuid = req.params.uuid;
     if (!uuid) {
-      res.redirect(`${config.BASE}/main/404`);
+      res.redirect(common.urls.casual_404);
     } else {
-      res.redirect(`${config.BASE}/main/process/${uuid}/cancel`);
+      res.redirect(common.urls.casual_cancel(uuid));
     }
   },
 

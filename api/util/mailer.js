@@ -5,24 +5,10 @@ let template = require("./emailTemplate");
 
 const db = require("./../../db/models");
 const Configuration = db.Configuration;
-const config = require(`./../../config/${process.env.NODE_APP}.json`);
-
-let testAccount = {
-  user: config.mailer.user,
-  pass: config.mailer.pass
-};
+const CONFIG_APP = require(`./../../config/${process.env.NODE_APP}.json`);
 
 async function main(email, status, uuid, freeUser) {
-  let transporter = nodemailer.createTransport({
-    host: "smtp.pangeanic.com",
-    port: 587,
-    tls: { rejectUnauthorized: false },
-    secure: false, // upgrade later with STARTTLS
-    auth: {
-      user: testAccount.user,
-      pass: testAccount.pass
-    }
-  });
+  let transporter = nodemailer.createTransport(CONFIG_APP.mailer);
 
   try {
     let config = await Configuration.findOne();
@@ -56,7 +42,6 @@ async function main(email, status, uuid, freeUser) {
 
     return true;
   } catch (err) {
-    console.log(err);
     return false;
   }
 }

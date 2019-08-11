@@ -3,7 +3,7 @@ const common = require("./../../config/common");
 const template = (email, status, uuid, freeUser) => {
   let table;
   const url = common.urls.download(uuid);
-  console.log(url);
+  const base = common.urls.base;
   if (freeUser && (status === "quoting" || status === "downloaded")) {
     table = `
     <table role="" border="0" cellpadding="0" cellspacing="0">
@@ -387,7 +387,7 @@ const template = (email, status, uuid, freeUser) => {
                 <tr>
                   <td class="content-block">
                     <span class="apple-link">Pgweb Pangeanic, Av de las Cortes Valencianas, 26</span>
-                    <br> Visit our site!! <a href="http://pgweb.pangeamt.com/">Pgweb Pangeamt</a>.
+                    <br> Visit our site!! <a href="${base}">Pgweb Pangeamt</a>.
                   </td>
                 </tr>
                 <tr>

@@ -83,4 +83,14 @@ function onListening() {
   var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
   debug("Listening on " + bind);
   console.log("Server listenning on port:", addr.port);
+  console.warn(
+    "\x1b[33m%s\x1b[0m",
+    "Enviroment Varibles (NODE_ENV):",
+    process.env.NODE_ENV
+  );
+  console.warn(
+    "\x1b[33m%s\x1b[0m",
+    "Enviroment Varibles (NODE_APP):",
+    process.env.NODE_APP
+  );
 }

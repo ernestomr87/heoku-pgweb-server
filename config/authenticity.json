@@ -1,10 +1,17 @@
 {
+  "enginesApi": "http://prod.pangeamt.com:8080/PGFile/v1/",
   "host": "http://pgweb.pangeamt.com",
   "port": 3002,
   "apiKey": "cOrtesvalenc1anas",
   "mailer": {
-    "user": "pgweb@pangeanic.com",
-    "pass": "santac1ara"
+    "host": "smtp.pangeanic.com",
+    "port": 587,
+    "tls": { "rejectUnauthorized": false },
+    "secure": false,
+    "auth": {
+      "user": "pgweb@pangeanic.com",
+      "pass": "santac1ara"
+    }
   },
   "allowedFiles": "docx|xlsx|pptx|pdf|odt|odp",
   "secret": "pangeamt-super-secret-key"

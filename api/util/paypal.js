@@ -5,6 +5,7 @@ const BillingInformation = db.BillingInformation;
 const externalApi = require("./../external_api/api");
 const env = process.env.NODE_ENV || "production";
 const config = require("./../../config/env.json")[env];
+const commom = require("./../../config/common");
 
 const calculatePrice = (price, applyTax) => {
   let aux = price.toFixed(2);
@@ -30,9 +31,9 @@ const pay = async (req, res) => {
 
   if (!uuid || !quote) {
     if (req.userId) {
-      return res.redirect(`${config.BASE}/dashboard/404`);
+      return res.redirect(commom.urls.register_404);
     } else {
-      return res.redirect(`${config.BASE}/main/404`);
+      return res.redirect(commom.urls.casual_404);
     }
   }
 
@@ -59,9 +60,9 @@ const pay = async (req, res) => {
 
   if (!selected || !selected.length) {
     if (req.userId) {
-      return res.redirect(`${config.BASE}/dashboard/404`);
+      return res.redirect(commom.urls.register_404);
     } else {
-      return res.redirect(`${config.BASE}/main/404`);
+      return res.redirect(commom.urls.casual_404);
     }
   }
 
@@ -77,11 +78,11 @@ const pay = async (req, res) => {
   let cancel_url;
 
   if (req.userId) {
-    return_url = `${config.BASE}/api/payment/${uuid}/${quote}/return`;
-    cancel_url = `${config.BASE}/api/payment/${uuid}/cancel`;
+    return_url = `${commom.urls.base}/api/payment/${uuid}/${quote}/return`;
+    cancel_url = `${commom.urls.base}/api/payment/${uuid}/cancel`;
   } else {
-    return_url = `${config.BASE}/api/payment/${uuid}/${quote}/return_free`;
-    cancel_url = `${config.BASE}/api/payment/${uuid}/cancel_free`;
+    return_url = `${commom.urls.base}/api/payment/${uuid}/${quote}/return_free`;
+    cancel_url = `${commom.urls.base}/api/payment/${uuid}/cancel_free`;
   }
 
   var create_payment_json = {
@@ -118,12 +119,11 @@ const pay = async (req, res) => {
   paypal.payment.create(create_payment_json, function(error, payment) {
     if (error) {
       if (req.userId) {
-        res.redirect(`${config.BASE}/dashboard/process-services/${uuid}/error`);
+        res.redirect(commom.urls.register_404);
       } else {
-        res.redirect(`${config.BASE}/main/process/${uuid}/error`);
+        res.redirect(commom.urls.casual_404);
       }
     } else {
-      //capture HATEOAS links
       var links = {};
       payment.links.forEach(function(linkObj) {
         links[linkObj.rel] = {
@@ -132,16 +132,13 @@ const pay = async (req, res) => {
         };
       });
 
-      //if redirect url present, redirect user
       if (links.hasOwnProperty("approval_url")) {
         res.redirect(links["approval_url"].href);
       } else {
         if (req.userId) {
-          res.redirect(
-            `${config.BASE}/dashboard/process-services/${uuid}/error`
-          );
+          res.redirect(commom.urls.register_404);
         } else {
-          res.redirect(`${config.BASE}/main/process/${uuid}/error`);
+          res.redirect(commom.urls.casual_404);
         }
       }
     }
@@ -157,19 +154,17 @@ const execute = async (req, res) => {
 
   if (!uuid || !paymentId || !payerId) {
     if (req.freeUser) {
-      res.redirect(`${config.BASE}/main/404`);
+      res.redirect(commom.urls.casual_404);
     } else {
-      res.redirect(`${config.BASE}/dashboard/404`);
+      res.redirect(commom.urls.register_404);
     }
   } else {
     paypal.payment.execute(paymentId, payerId, async (error, payment) => {
       if (error) {
         if (req.freeUser) {
-          res.redirect(`${config.BASE}/main/process/${uuid}/error`);
+          res.redirect(commom.urls.casual_error(uuid));
         } else {
-          res.redirect(
-            `${config.BASE}/dashboard/process-services/${uuid}/error`
-          );
+          res.redirect(commom.urls.register_error(uuid));
         }
       } else {
         if (payment.state == "approved") {
@@ -185,9 +180,9 @@ const execute = async (req, res) => {
 
           if (!selected || !selected.length) {
             if (req.freeUser) {
-              res.redirect(`${config.BASE}/main/404`);
+              res.redirect(commom.urls.casual_404);
             } else {
-              res.redirect(`${config.BASE}/main/dashboard/404`);
+              res.redirect(commom.urls.register_404);
             }
           }
 
@@ -211,19 +206,15 @@ const execute = async (req, res) => {
           await externalApi.processFileAfterQuoteFile(doc.fileId, quote);
 
           if (req.freeUser) {
-            res.redirect(`${config.BASE}/main/process/${doc.fileId}/success`);
+            res.redirect(commom.urls.casual_success(doc.fileId));
           } else {
-            res.redirect(
-              `${config.BASE}/dashboard/process-services/${doc.fileId}/success`
-            );
+            res.redirect(commom.urls.register_success(doc.fileId));
           }
         } else {
           if (req.freeUser) {
-            res.redirect(`${config.BASE}/main/process/${doc.uuid}/error`);
+            res.redirect(commom.urls.casual_error(uuid));
           } else {
-            res.redirect(
-              `${config.BASE}/dashboard/process-services/${doc.uuid}/error`
-            );
+            res.redirect(commom.urls.register_error(uuid));
           }
         }
       }
