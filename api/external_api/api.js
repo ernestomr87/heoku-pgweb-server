@@ -2,7 +2,7 @@
 const axios = require("axios");
 
 const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
-const BASE_URL=`${APP_CONFIG.host}:${APP_CONFIG.port}`,
+const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
 const API_KEY = APP_CONFIG.apiKey;
 const API_ENGINE = APP_CONFIG.enginesApi;
 
