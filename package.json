@@ -5,8 +5,13 @@
   "scripts": {
     "start:p": "NODE_ENV=production NODE_APP=pangeanic node ./bin/www",
     "dev:p": "NODE_ENV=development NODE_APP=pangeanic node ./bin/www",
+    "debug:p": "NODE_ENV=development NODE_APP=pangeanic node --nolazy --inspect-brk=9229 ./bin/www",
     "start:a": "NODE_ENV=production NODE_APP=authenticity node ./bin/www",
-    "dev:a": "NODE_ENV=development NODE_APP=authenticity node ./bin/www"
+    "dev:a": "NODE_ENV=development NODE_APP=authenticity node ./bin/www",
+    "debug:a": "NODE_ENV=development NODE_APP=authenticity node --nolazy --inspect-brk=9229 ./bin/www",
+    "start:l": "NODE_ENV=production NODE_APP=local node ./bin/www",
+    "dev:l": "NODE_ENV=development NODE_APP=local node ./bin/www",
+    "debug:l": "NODE_ENV=development NODE_APP=local node --nolazy --inspect-brk=9229 ./bin/www"
   },
   "dependencies": {
     "async": "3.1.0",
