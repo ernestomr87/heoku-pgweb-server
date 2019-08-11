@@ -27,7 +27,7 @@ module.exports = {
       method: "post",
       url: `${API_ENGINE}processfile`,
       data: {
-        notiflink: `${BASE_URL}/api/notification`,
+        // notiflink: `${BASE_URL}/api/notification`,
         username,
         API_KEY: API_KEY,
         source,
@@ -45,7 +45,7 @@ module.exports = {
       method: "post",
       url: `${API_ENGINE}processfile`,
       data: {
-        notiflink: `${BASE_URL}/api/notification`,
+        // notiflink: `${BASE_URL}/api/notification`,
         fileId,
         processOptionId,
         API_KEY: API_KEY
@@ -66,7 +66,7 @@ module.exports = {
       method: "post",
       url: `${API_ENGINE}quotefile`,
       data: {
-        notiflink: `${BASE_URL}/api/notification`,
+        // notiflink: `${BASE_URL}/api/notification`,
         username,
         API_KEY: API_KEY,
         source,
@@ -84,7 +84,7 @@ module.exports = {
       method: "post",
       url: `${API_ENGINE}filestatus`,
       data: {
-        notiflink: `${BASE_URL}/api/notification`,
+        // notiflink: `${BASE_URL}/api/notification`,
         API_KEY: API_KEY,
         guids
       }
@@ -96,7 +96,7 @@ module.exports = {
       method: "post",
       url: `${API_ENGINE}retrievefile`,
       data: {
-        notiflink: `${BASE_URL}/api/notification`,
+        // notiflink: `${BASE_URL}/api/notification`,
         API_KEY: API_KEY,
         guid
       }
