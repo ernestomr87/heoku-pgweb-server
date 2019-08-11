@@ -3,6 +3,14 @@
   "host": "http://localhost",
   "port": 4000,
   "apiKey": "cOrtesvalenc1anas",
+  "db": {
+    "username": "root",
+    "password": "epastor",
+    "database": "pangeamt_production",
+    "database_dashboard": "relay",
+    "host": "prod.pangeamt.com",
+    "dialect": "mysql"
+  },
   "mailer": {
     "host": "smtp.pangeanic.com",
     "port": 587,

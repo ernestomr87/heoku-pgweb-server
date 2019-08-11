@@ -24,10 +24,10 @@ app.use(cors());
 
 app.use('/', index);
 
-// const db = require('./db/models');
-// db.sequelize.sync({ force: true }).then(() => {
-//   console.log('Drop and Resync with { force: true }');
-// });
+const db = require('./db/models');
+db.sequelize.sync({ force: true }).then(() => {
+  console.log('Drop and Resync with { force: true }');
+});
 
 var env = process.env.NODE_ENV || 'production';
 

@@ -3,6 +3,14 @@
   "host": "http://pgweb.pangeamt.com",
   "port": 3000,
   "apiKey": "cOrtesvalenc1anas",
+  "db": {
+    "username": "root",
+    "password": "epastor",
+    "database": "pgweb_pangeanic",
+    "database_dashboard": "relay",
+    "host": "prod.pangeamt.com",
+    "dialect": "mysql"
+  },
   "mailer": {
     "host": "smtp.pangeanic.com",
     "port": 587,
