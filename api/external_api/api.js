@@ -29,7 +29,7 @@ module.exports = {
       data: {
         notiflink: `${BASE_URL}/api/notification`,
         username,
-        API_KEY: API_KEY,
+        apikey: API_KEY,
         source,
         target,
         engineid,
@@ -48,7 +48,7 @@ module.exports = {
         notiflink: `${BASE_URL}/api/notification`,
         fileId,
         processOptionId,
-        API_KEY: API_KEY
+        apikey: API_KEY
       }
     });
   },
@@ -68,7 +68,7 @@ module.exports = {
       data: {
         notiflink: `${BASE_URL}/api/notification`,
         username,
-        API_KEY: API_KEY,
+        apikey: API_KEY,
         source,
         target,
         engineid,
@@ -85,7 +85,7 @@ module.exports = {
       url: `${API_ENGINE}filestatus`,
       data: {
         notiflink: `${BASE_URL}/api/notification`,
-        API_KEY: API_KEY,
+        apikey: API_KEY,
         guids
       }
     });
@@ -97,7 +97,7 @@ module.exports = {
       url: `${API_ENGINE}retrievefile`,
       data: {
         notiflink: `${BASE_URL}/api/notification`,
-        API_KEY: API_KEY,
+        apikey: API_KEY,
         guid
       }
     });
