@@ -5,6 +5,7 @@ const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
 const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
 const API_KEY = APP_CONFIG.apiKey;
 const API_ENGINE = APP_CONFIG.enginesApi;
+const API_ENGINE_NEX_RELAY = APP_CONFIG.enginesApiNexRelay;
 
 module.exports = {
   describeEngines: function describeEngines() {
@@ -99,6 +100,60 @@ module.exports = {
         notiflink: `${BASE_URL}/api/notification`,
         apikey: API_KEY,
         guid
+      }
+    });
+  },
+
+  //GET NODES
+  getNodes: () => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/nodes`,
+      data: {}
+    });
+  },
+  addNode: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/addnode`,
+      data: {
+        ...data
+      }
+    });
+  },
+  setNode: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/editnode`,
+      data: {
+        ...data
+      }
+    });
+  },
+  delNode: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/delnode`,
+      data: {
+        ...data
+      }
+    });
+  },
+  setStatusNode: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/nodestatus`,
+      data: {
+        ...data
+      }
+    });
+  },
+  restartNode: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/restartnode`,
+      data: {
+        ...data
       }
     });
   }

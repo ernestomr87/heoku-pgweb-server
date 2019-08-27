@@ -16,6 +16,7 @@ let process = controllers.process;
 let typeOfPermits = controllers.typeOfPermits;
 let users = controllers.users;
 let billing = controllers.billing;
+let nodes = controllers.nodes;
 
 const router = express.Router();
 
@@ -118,5 +119,13 @@ router.get("/api/payment/:uuid/:quote/return", process.return);
 router.get("/api/payment/:uuid/cancel", process.cancel);
 router.get("/api/payment/:uuid/:quote/return_free", process.return_free);
 router.get("/api/payment/:uuid/cancel_free", process.cancel_free);
+
+//GET NODES
+router.get("/api/nodes", nodes.getNodes);
+router.post("/api/nodes", nodes.addNode);
+router.put("/api/nodes", nodes.setNode);
+router.delete("/api/nodes", nodes.delNode);
+router.put("/api/nodes/status", nodes.setStatus);
+router.put("/api/nodes/restart", nodes.restartStatus);
 
 module.exports = router;
