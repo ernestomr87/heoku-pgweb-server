@@ -121,11 +121,11 @@ router.get("/api/payment/:uuid/:quote/return_free", process.return_free);
 router.get("/api/payment/:uuid/cancel_free", process.cancel_free);
 
 //GET NODES
-router.get("/api/nodes", nodes.getNodes);
-router.post("/api/nodes", nodes.addNode);
-router.put("/api/nodes", nodes.setNode);
-router.delete("/api/nodes", nodes.delNode);
-router.put("/api/nodes/status", nodes.setStatus);
-router.put("/api/nodes/restart", nodes.restartStatus);
+router.get("/api/nodes", [verifyToken, isAdmin], nodes.getNodes);
+router.post("/api/nodes", [verifyToken, isAdmin], nodes.addNode);
+router.put("/api/nodes", [verifyToken, isAdmin], nodes.setNode);
+router.delete("/api/nodes", [verifyToken, isAdmin], nodes.delNode);
+router.put("/api/nodes/status", [verifyToken, isAdmin], nodes.setStatus);
+router.put("/api/nodes/restart", [verifyToken, isAdmin], nodes.restartStatus);
 
 module.exports = router;
