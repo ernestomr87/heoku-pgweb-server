@@ -104,7 +104,7 @@ module.exports = {
     });
   },
 
-  //GET NODES
+  //API NODES
   getNodes: () => {
     return axios({
       method: "post",
@@ -139,15 +139,6 @@ module.exports = {
       }
     });
   },
-  setStatusNode: data => {
-    return axios({
-      method: "post",
-      url: `${API_ENGINE_NEX_RELAY}corp/nodestatus`,
-      data: {
-        ...data
-      }
-    });
-  },
   restartNode: data => {
     return axios({
       method: "post",
@@ -155,6 +146,35 @@ module.exports = {
       data: {
         ...data
       }
+    });
+  },
+  //API MODELS
+  getModels: () => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/models`,
+      data: {}
+    });
+  },
+  addModel: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/addmodel`,
+      data: { ...data }
+    });
+  },
+  delModel: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/delmodel`,
+      data: { ...data }
+    });
+  },
+  cloneModel: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/clonemodel`,
+      data: { ...data }
     });
   }
 };

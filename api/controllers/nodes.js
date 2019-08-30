@@ -80,25 +80,6 @@ module.exports = {
       });
     }
   },
-  setStatus: async (req, res) => {
-    try {
-      const data = {
-        name: req.body.name,
-        status: req.body.status
-      };
-
-      const response = await externalApi.setStatusNode(data);
-      const {
-        data: { nodeid, nodename, status }
-      } = response;
-
-      return res.status(200).send({ nodeid, nodename, status });
-    } catch (err) {
-      res.status(500).json({
-        error: err
-      });
-    }
-  },
   restartStatus: async (req, res) => {
     try {
       const data = {
