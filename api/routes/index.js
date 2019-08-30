@@ -128,9 +128,9 @@ router.post("/api/nodes", [verifyToken, isAdmin], nodes.addNode);
 router.delete("/api/nodes", [verifyToken, isAdmin], nodes.delNode);
 // router.put("/api/nodes/restart", [verifyToken, isAdmin], nodes.restartStatus);
 
-router.get("/api/models", [verifyToken, isAdmin], models.getModels);
-router.post("/api/models", [verifyToken, isAdmin], models.addModel);
-router.put("/api/models", [verifyToken, isAdmin], models.cloneModel);
-router.delete("/api/models", [verifyToken, isAdmin], models.delModel);
+router.get("/api/models", models.getModels);
+router.post("/api/models", models.addModel);
+router.put("/api/models", models.cloneModel);
+router.delete("/api/models", models.delModel);
 
 module.exports = router;
