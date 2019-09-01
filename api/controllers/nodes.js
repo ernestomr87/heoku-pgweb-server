@@ -40,28 +40,6 @@ module.exports = {
       });
     }
   },
-  setNode: async (req, res) => {
-    try {
-      const data = {
-        id: req.body.id,
-        name: req.body.name,
-        ipaddress: req.body.ipaddress,
-        port: req.body.port,
-        status: req.body.status
-      };
-
-      const response = await externalApi.setNode(data);
-      const {
-        data: { nodeid }
-      } = response;
-
-      return res.status(200).send({ nodeid });
-    } catch (err) {
-      res.status(500).json({
-        error: err
-      });
-    }
-  },
   delNode: async (req, res) => {
     try {
       const data = {
@@ -80,7 +58,7 @@ module.exports = {
       });
     }
   },
-  restartStatus: async (req, res) => {
+  restartNode: async (req, res) => {
     try {
       const data = {
         id: req.body.id

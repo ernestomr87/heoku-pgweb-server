@@ -67,7 +67,6 @@ module.exports = {
   cloneModel: async (req, res) => {
     try {
       const data = {
-        id: req.body.id,
         name: req.body.name,
         descr: req.body.descr,
         olmode: req.body.olmode,

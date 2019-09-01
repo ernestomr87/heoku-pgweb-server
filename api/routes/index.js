@@ -18,6 +18,7 @@ let users = controllers.users;
 let billing = controllers.billing;
 let nodes = controllers.nodes;
 let models = controllers.models;
+let eds = controllers.eds;
 
 const router = express.Router();
 
@@ -124,13 +125,20 @@ router.get("/api/payment/:uuid/cancel_free", process.cancel_free);
 //GET NODES
 router.get("/api/nodes", [verifyToken, isAdmin], nodes.getNodes);
 router.post("/api/nodes", [verifyToken, isAdmin], nodes.addNode);
-// router.put("/api/nodes", [verifyToken, isAdmin], nodes.setNode);
 router.delete("/api/nodes", [verifyToken, isAdmin], nodes.delNode);
-// router.put("/api/nodes/restart", [verifyToken, isAdmin], nodes.restartStatus);
+router.put("/api/nodes/restart", [verifyToken, isAdmin], nodes.restartNode);
 
+//MODELS
 router.get("/api/models", models.getModels);
 router.post("/api/models", models.addModel);
 router.put("/api/models", models.cloneModel);
 router.delete("/api/models", models.delModel);
+
+//EDS
+router.get("/api/eds", eds.getEds);
+router.post("/api/eds", eds.addEd);
+router.delete("/api/eds", eds.delEd);
+router.put("/api/enabled", eds.enabledEd);
+router.put("/api/disabled", eds.disabledEd);
 
 module.exports = router;

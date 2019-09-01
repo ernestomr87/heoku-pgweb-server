@@ -8,6 +8,7 @@ const users = require("./users");
 const billing = require("./billing");
 const nodes = require("./nodes");
 const models = require("./models");
+const eds = require("./eds");
 
 module.exports = {
   auth,
@@ -17,5 +18,6 @@ module.exports = {
   users,
   billing,
   nodes,
-  models
+  models,
+  eds
 };

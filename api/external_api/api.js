@@ -121,15 +121,6 @@ module.exports = {
       }
     });
   },
-  setNode: data => {
-    return axios({
-      method: "post",
-      url: `${API_ENGINE_NEX_RELAY}corp/editnode`,
-      data: {
-        ...data
-      }
-    });
-  },
   delNode: data => {
     return axios({
       method: "post",
@@ -148,6 +139,7 @@ module.exports = {
       }
     });
   },
+
   //API MODELS
   getModels: () => {
     return axios({
@@ -176,5 +168,43 @@ module.exports = {
       url: `${API_ENGINE_NEX_RELAY}corp/clonemodel`,
       data: { ...data }
     });
-  }
+  },
+
+  //API EDS
+    //API MODELS
+    getEds: () => {
+      return axios({
+        method: "post",
+        url: `${API_ENGINE_NEX_RELAY}corp/eds`,
+        data: {}
+      });
+    },
+    addEd: data => {
+      return axios({
+        method: "post",
+        url: `${API_ENGINE_NEX_RELAY}corp/added`,
+        data: { ...data }
+      });
+    },
+    delEd: data => {
+      return axios({
+        method: "post",
+        url: `${API_ENGINE_NEX_RELAY}corp/deled`,
+        data: { ...data }
+      });
+    },
+    enabledEd: data => {
+      return axios({
+        method: "post",
+        url: `${API_ENGINE_NEX_RELAY}corp/enable`,
+        data: { ...data }
+      });
+    },
+    disabledEd: data => {
+      return axios({
+        method: "post",
+        url: `${API_ENGINE_NEX_RELAY}corp/disableed`,
+        data: { ...data }
+      });
+    },
 };
