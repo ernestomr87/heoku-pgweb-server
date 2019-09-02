@@ -127,6 +127,8 @@ router.get("/api/nodes", [verifyToken, isAdmin], nodes.getNodes);
 router.post("/api/nodes", [verifyToken, isAdmin], nodes.addNode);
 router.delete("/api/nodes", [verifyToken, isAdmin], nodes.delNode);
 router.put("/api/nodes/restart", [verifyToken, isAdmin], nodes.restartNode);
+router.put("/api/nodes/enabled", [verifyToken, isAdmin], nodes.enabledNode);
+router.put("/api/nodes/disabled", [verifyToken, isAdmin], nodes.disabledNode);
 
 //MODELS
 router.get("/api/models", models.getModels);
@@ -138,7 +140,7 @@ router.delete("/api/models", models.delModel);
 router.get("/api/eds", eds.getEds);
 router.post("/api/eds", eds.addEd);
 router.delete("/api/eds", eds.delEd);
-router.put("/api/enabled", eds.enabledEd);
-router.put("/api/disabled", eds.disabledEd);
+router.put("/api/eds/enabled", eds.enabledEd);
+router.put("/api/eds/disabled", eds.disabledEd);
 
 module.exports = router;

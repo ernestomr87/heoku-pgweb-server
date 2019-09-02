@@ -5,7 +5,19 @@ const externalApi = require("../external_api/api");
 module.exports = {
   getEds: async (req, res) => {
     try {
-      const response = await externalApi.getEds();
+      const query = {
+        ...req.query
+      };
+
+      const filter = {};
+      if (query.filter === "node") {
+        filter["node_id"] = query.id;
+      }
+      if (query.filter === "model") {
+        filter["model_id"] = query.id;
+      }
+
+      const response = await externalApi.getEds(filter);
       const response1 = await externalApi.getModels();
       const response2 = await externalApi.getNodes();
 

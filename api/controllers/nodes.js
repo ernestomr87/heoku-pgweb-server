@@ -75,5 +75,41 @@ module.exports = {
         error: err
       });
     }
+  },
+  enabledNode: async (req, res) => {
+    try {
+      const data = {
+        id: req.body.id
+      };
+
+      const response = await externalApi.enabledNode(data);
+      const {
+        data: { node_id }
+      } = response;
+
+      return res.status(200).send({ nodeid });
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
+  },
+  disabledNode: async (req, res) => {
+    try {
+      const data = {
+        id: req.body.id
+      };
+
+      const response = await externalApi.disabledNode(data);
+      const {
+        data: { node_id }
+      } = response;
+
+      return res.status(200).send({ nodeid });
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
   }
 };

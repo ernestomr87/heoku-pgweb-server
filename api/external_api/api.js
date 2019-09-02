@@ -139,6 +139,24 @@ module.exports = {
       }
     });
   },
+  enabledNode: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/enablenode`,
+      data: {
+        ...data
+      }
+    });
+  },
+  disabledNode: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/disablenode`,
+      data: {
+        ...data
+      }
+    });
+  },
 
   //API MODELS
   getModels: () => {
@@ -171,40 +189,40 @@ module.exports = {
   },
 
   //API EDS
-    //API MODELS
-    getEds: () => {
-      return axios({
-        method: "post",
-        url: `${API_ENGINE_NEX_RELAY}corp/eds`,
-        data: {}
-      });
-    },
-    addEd: data => {
-      return axios({
-        method: "post",
-        url: `${API_ENGINE_NEX_RELAY}corp/added`,
-        data: { ...data }
-      });
-    },
-    delEd: data => {
-      return axios({
-        method: "post",
-        url: `${API_ENGINE_NEX_RELAY}corp/deled`,
-        data: { ...data }
-      });
-    },
-    enabledEd: data => {
-      return axios({
-        method: "post",
-        url: `${API_ENGINE_NEX_RELAY}corp/enable`,
-        data: { ...data }
-      });
-    },
-    disabledEd: data => {
-      return axios({
-        method: "post",
-        url: `${API_ENGINE_NEX_RELAY}corp/disableed`,
-        data: { ...data }
-      });
-    },
+  //API MODELS
+  getEds: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/eds`,
+      data: { ...form }
+    });
+  },
+  addEd: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/added`,
+      data: { ...data }
+    });
+  },
+  delEd: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/deled`,
+      data: { ...data }
+    });
+  },
+  enabledEd: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/enableed`,
+      data: { ...data }
+    });
+  },
+  disabledEd: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/disableed`,
+      data: { ...data }
+    });
+  }
 };
