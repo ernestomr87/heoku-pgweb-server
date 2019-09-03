@@ -46,15 +46,20 @@ module.exports = {
     try {
       const data = {
         nodeid: req.body.nodeid,
-        modelid: req.body.modelid,
-        status: req.body.status
+        modelid: req.body.modelid
+        // status: req.body.status
       };
 
-      const response = await externalApi.addModel(data);
+      const response = await externalApi.addEd(data);
       const {
-        data: { edis }
+        data: { edis, engineid, modelid }
       } = response;
 
+      if (!engineid && !modelid) {
+        res.status(500).json({
+          error: "Model and Engine are 0"
+        });
+      }
       return res.status(200).send({ edis });
     } catch (err) {
       res.status(500).json({
@@ -68,7 +73,7 @@ module.exports = {
         id: req.body.id
       };
 
-      const response = await externalApi.delModel(data);
+      const response = await externalApi.delEd(data);
       const {
         data: { edid }
       } = response;

@@ -87,7 +87,7 @@ module.exports = {
         data: { node_id }
       } = response;
 
-      return res.status(200).send({ nodeid });
+      return res.status(200).send({ node_id });
     } catch (err) {
       res.status(500).json({
         error: err
@@ -105,7 +105,7 @@ module.exports = {
         data: { node_id }
       } = response;
 
-      return res.status(200).send({ nodeid });
+      return res.status(200).send({ node_id });
     } catch (err) {
       res.status(500).json({
         error: err
