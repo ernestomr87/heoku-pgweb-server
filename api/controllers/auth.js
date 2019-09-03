@@ -50,7 +50,8 @@ exports.signin = async (req, res) => {
         email: user.email,
         rol: user.rol,
         hasClient: user.UserId,
-        TypeOfPermitId: user.TypeOfPermitId
+        TypeOfPermitId: user.TypeOfPermitId,
+        typeOfUser: user.typeOfUser
       },
       config.secret,
       {

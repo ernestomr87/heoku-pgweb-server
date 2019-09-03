@@ -472,15 +472,28 @@ module.exports = {
             email: username
           });
 
-          const quote = await externalApi.quoteFile(
-            username,
-            engineSource,
-            engineTarget,
-            engineId,
-            fileName,
-            fileType,
-            file
-          );
+          let quote;
+          if (req.user.typeOfUser === 1) {
+            quote = await externalApi.processFile(
+              username,
+              engineSource,
+              engineTarget,
+              engineId,
+              fileName,
+              fileType,
+              file
+            );
+          } else {
+            quote = await externalApi.quoteFile(
+              username,
+              engineSource,
+              engineTarget,
+              engineId,
+              fileName,
+              fileType,
+              file
+            );
+          }
 
           const error = quote.data.error;
           const errorMessage = quote.data.errormessage;
@@ -570,6 +583,8 @@ module.exports = {
       });
     }
   },
+
+  
 
   /*
    *  Notificaciones desde el motor de Traduccion

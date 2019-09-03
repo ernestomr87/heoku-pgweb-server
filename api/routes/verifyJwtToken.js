@@ -23,6 +23,7 @@ const verifyToken = async (req, res, next) => {
         message: "Fail to Authentication. Error -> " + err
       });
     }
+    req.user = decoded;
     req.userId = decoded.id;
     req.userEmail = decoded.email;
     req.userRol = decoded.rol;

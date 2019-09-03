@@ -1,7 +1,7 @@
-'use strict';
+"use strict";
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define(
-    'User',
+    "User",
     {
       fullName: DataTypes.STRING,
       password: DataTypes.STRING,
@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
       typeOfUser: {
         type: DataTypes.INTEGER,
         defaultValue: 3
-      },
+      }
     },
     {}
   );
@@ -28,8 +28,6 @@ module.exports = (sequelize, DataTypes) => {
     User.hasMany(models.User);
     User.belongsTo(models.TypeOfPermits);
     User.hasOne(models.BillingInformation);
-
   };
   return User;
 };
-
