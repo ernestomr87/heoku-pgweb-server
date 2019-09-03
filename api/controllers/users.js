@@ -166,11 +166,22 @@ exports.update = async (req, res) => {
         }
       }
     );
+    await User.update(
+      {
+        typeOfUser: req.body.typeOfUser
+      },
+      {
+        where: {
+          userId: req.body.id
+        }
+      }
+    );
     let user = await User.findOne({
       where: {
         id: req.body.id
       }
     });
+
     user.setTypeOfPermit(req.body.typeOfPermits);
 
     return res.status(200).send({

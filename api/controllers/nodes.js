@@ -25,7 +25,6 @@ module.exports = {
         name: req.body.name,
         ipaddress: req.body.ipaddress,
         port: req.body.port,
-        status: req.body.status
       };
 
       const response = await externalApi.addNode(data);
