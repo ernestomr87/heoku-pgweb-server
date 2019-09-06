@@ -224,5 +224,51 @@ module.exports = {
       url: `${API_ENGINE_NEX_RELAY}corp/disableed`,
       data: { ...data }
     });
+  },
+
+  //API SERVICES
+  getServices: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/services`,
+      data: { ...form }
+    });
+  },
+
+  //API ENGINES
+  getEngines: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/engines`,
+      data: { ...form }
+    });
+  },
+  addEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/addengine`,
+      data: { ...data }
+    });
+  },
+  delEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/delengine`,
+      data: { ...data }
+    });
+  },
+  enabledEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/enableengine`,
+      data: { ...data }
+    });
+  },
+  disabledEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/disableengine`,
+      data: { ...data }
+    });
   }
 };

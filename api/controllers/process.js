@@ -140,6 +140,7 @@ module.exports = {
 
       const process = await user.getProcesses({
         attributes: [
+          "id",
           "uuid",
           "fileName",
           "fileId",
@@ -153,9 +154,14 @@ module.exports = {
           "status",
           "quotes",
           "fileDownload",
-          "quoteSelected"
-        ]
+          "quoteSelected",
+          "downloaded"
+        ],
+        where: {
+          removed: false
+        }
       });
+
       let bi = null;
       if (
         req.userRol === "client" ||
@@ -584,8 +590,6 @@ module.exports = {
     }
   },
 
-  
-
   /*
    *  Notificaciones desde el motor de Traduccion
    */
@@ -772,5 +776,60 @@ module.exports = {
   return_free: async (req, res) => {
     req.freeUser = true;
     return paypal.execute(req, res);
+  },
+
+  setDownload: async (req, res) => {
+    try {
+      const id = req.body.id;
+      if (id) {
+        await Process.update(
+          {
+            downloaded: true
+          },
+          {
+            where: {
+              id: id
+            }
+          }
+        );
+      } else {
+        return res.status(400).send({
+          error: "Bad Request"
+        });
+      }
+
+      return res.status(200).send({ data: "ok" });
+    } catch (error) {
+      return res.status(500).send({
+        error: error
+      });
+    }
+  },
+  removed: async (req, res) => {
+    try {
+      const id = req.body.id;
+      if (id) {
+        await Process.update(
+          {
+            removed: true
+          },
+          {
+            where: {
+              id: id
+            }
+          }
+        );
+      } else {
+        return res.status(400).send({
+          error: "Bad Request"
+        });
+      }
+
+      return res.status(200).send({ data: "ok" });
+    } catch (error) {
+      return res.status(500).send({
+        error: error
+      });
+    }
   }
 };

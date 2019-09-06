@@ -20,7 +20,9 @@ module.exports = (sequelize, DataTypes) => {
       secret: DataTypes.STRING,
       quotes: DataTypes.JSON,
       quoteSelected: DataTypes.JSON,
-      fileDownload: DataTypes.JSON
+      fileDownload: DataTypes.JSON,
+      downloaded: DataTypes.BOOLEAN,
+      removed: DataTypes.BOOLEAN
     },
     {}
   );

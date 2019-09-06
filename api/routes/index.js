@@ -19,6 +19,7 @@ let billing = controllers.billing;
 let nodes = controllers.nodes;
 let models = controllers.models;
 let eds = controllers.eds;
+let engines = controllers.engines;
 
 const router = express.Router();
 
@@ -61,6 +62,8 @@ router.post(
   [verifyToken],
   process.processFileAfterQuoteFile
 );
+router.put("/api/process/downloaded", [verifyToken], process.setDownload);
+router.put("/api/process/removed", [verifyToken], process.removed);
 
 //USERS
 router.get("/api/users/get/:id", [verifyToken], users.get);
@@ -123,24 +126,42 @@ router.get("/api/payment/:uuid/:quote/return_free", process.return_free);
 router.get("/api/payment/:uuid/cancel_free", process.cancel_free);
 
 //GET NODES
-router.get("/api/nodes", [verifyToken, isAdmin], nodes.getNodes);
-router.post("/api/nodes", [verifyToken, isAdmin], nodes.addNode);
-router.delete("/api/nodes", [verifyToken, isAdmin], nodes.delNode);
-router.put("/api/nodes/restart", [verifyToken, isAdmin], nodes.restartNode);
-router.put("/api/nodes/enabled", [verifyToken, isAdmin], nodes.enabledNode);
-router.put("/api/nodes/disabled", [verifyToken, isAdmin], nodes.disabledNode);
+router.get("/api/corp/nodes", [verifyToken, isAdmin], nodes.getNodes);
+router.post("/api/corp/nodes", [verifyToken, isAdmin], nodes.addNode);
+router.delete("/api/corp/nodes", [verifyToken, isAdmin], nodes.delNode);
+router.put(
+  "/api/corp/nodes/restart",
+  [verifyToken, isAdmin],
+  nodes.restartNode
+);
+router.put(
+  "/api/corp/nodes/enabled",
+  [verifyToken, isAdmin],
+  nodes.enabledNode
+);
+router.put(
+  "/api/corp/nodes/disabled",
+  [verifyToken, isAdmin],
+  nodes.disabledNode
+);
 
 //MODELS
-router.get("/api/models", models.getModels);
-router.post("/api/models", models.addModel);
-router.put("/api/models", models.cloneModel);
-router.delete("/api/models", models.delModel);
+router.get("/api/corp/models", models.getModels);
+router.post("/api/corp/models", models.addModel);
+router.put("/api/corp/models", models.cloneModel);
+router.delete("/api/corp/models", models.delModel);
 
 //EDS
-router.get("/api/eds", eds.getEds);
-router.post("/api/eds", eds.addEd);
-router.delete("/api/eds", eds.delEd);
-router.put("/api/eds/enabled", eds.enabledEd);
-router.put("/api/eds/disabled", eds.disabledEd);
+router.get("/api/corp/eds", eds.getEds);
+router.post("/api/corp/eds", eds.addEd);
+router.delete("/api/corp/eds", eds.delEd);
+router.put("/api/corp/eds/enabled", eds.enabledEd);
+router.put("/api/corp/eds/disabled", eds.disabledEd);
+
+//SERVICES
+router.get("/api/corp/services", engines.getServices);
+
+//ENGINES
+router.get("/api/corp/engines", engines.getEngines);
 
 module.exports = router;

@@ -28,10 +28,7 @@ module.exports = {
         tgt: req.body.tgt,
         path: req.body.path,
         father: req.body.father,
-        updated: req.body.updated,
-        last_tu: req.body.last_tu,
         olmode: req.body.olmode,
-        status: req.body.status
       };
 
       const response = await externalApi.addModel(data);
