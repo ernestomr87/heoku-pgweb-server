@@ -163,5 +163,9 @@ router.get("/api/corp/services", engines.getServices);
 
 //ENGINES
 router.get("/api/corp/engines", engines.getEngines);
+router.post("/api/corp/engines", engines.addEngine);
+router.delete("/api/corp/engines", engines.delEngine);
+router.put("/api/corp/engines/enabled", engines.enabledEngine);
+router.put("/api/corp/engines/disabled", engines.disabledEngine);
 
 module.exports = router;

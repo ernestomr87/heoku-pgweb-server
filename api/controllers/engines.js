@@ -38,21 +38,28 @@ module.exports = {
   addEngine: async (req, res) => {
     try {
       const data = {
-        name: req.body.name,
-        descr: req.body.descr,
+        serviceid: req.body.serviceid,
+        inserviceid: req.body.inserviceid,
         src: req.body.src,
         tgt: req.body.tgt,
-        path: req.body.path,
-        father: req.body.father,
-        olmode: req.body.olmode
+        descr: req.body.descr,
+        domain: req.body.domain,
+        flavor: req.body.flavor,
+        status: -1
       };
 
       const response = await externalApi.addEngine(data);
       const {
-        data: { Engineid, engineid }
+        data: { engineid }
       } = response;
 
-      return res.status(200).send({ Engineid, engineid });
+      if (engineid) {
+        return res.status(200).send({ engineid });
+      } else {
+        res.status(500).json({
+          error: { message: "Bad Request" }
+        });
+      }
     } catch (err) {
       res.status(500).json({
         error: err
@@ -67,31 +74,46 @@ module.exports = {
 
       const response = await externalApi.delEngine(data);
       const {
-        data: { Engine_id }
+        data: { engine_id }
       } = response;
 
-      return res.status(200).send({ Engine_id });
+      return res.status(200).send({ engine_id });
     } catch (err) {
       res.status(500).json({
         error: err
       });
     }
   },
-  cloneEngine: async (req, res) => {
+  enabledEngine: async (req, res) => {
     try {
       const data = {
-        name: req.body.name,
-        descr: req.body.descr,
-        olmode: req.body.olmode,
-        father: req.body.father
+        id: req.body.id
       };
 
-      const response = await externalApi.cloneEngine(data);
+      const response = await externalApi.enabledEngine(data);
       const {
-        data: { Engineid, engineid }
+        data: { engine_id }
       } = response;
 
-      return res.status(200).send({ Engineid, engineid });
+      return res.status(200).send({ engine_id });
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
+  },
+  disabledEngine: async (req, res) => {
+    try {
+      const data = {
+        id: req.body.id
+      };
+
+      const response = await externalApi.disabledEngine(data);
+      const {
+        data: { engine_id }
+      } = response;
+
+      return res.status(200).send({ engine_id });
     } catch (err) {
       res.status(500).json({
         error: err
