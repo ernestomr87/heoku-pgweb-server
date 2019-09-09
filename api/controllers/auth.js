@@ -1,3 +1,4 @@
+const uuidv4 = require("uuid/v4");
 const db = require("./../../db/models");
 const config = require(`./../../config/${process.env.NODE_APP}.json`);
 const User = db.User;
@@ -14,7 +15,8 @@ exports.signup = (req, res) => {
     fullName: req.body.fullName,
     email: req.body.email,
     password: bcrypt.hashSync(req.body.password, 8),
-    rol: "user"
+    rol: "user",
+    apikey: uuidv4()
   })
     .then(() => {
       res.send("User registered successfully!");

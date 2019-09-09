@@ -270,5 +270,35 @@ module.exports = {
       url: `${API_ENGINE_NEX_RELAY}corp/disableengine`,
       data: { ...data }
     });
+  },
+
+  //USERS
+  addClient: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/addclient`,
+      data: { ...form }
+    });
+  },
+  addUser: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/adduser`,
+      data: { ...form }
+    });
+  },
+  delClient: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/delclientengine`,
+      data: { ...form }
+    });
+  },
+  delUser: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/deluserengine`,
+      data: { ...form }
+    });
   }
 };

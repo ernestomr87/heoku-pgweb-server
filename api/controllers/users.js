@@ -2,9 +2,13 @@ const Sequelize = require("sequelize");
 
 const Op = Sequelize.Op;
 const bcrypt = require("bcryptjs");
-
+const uuidv4 = require("uuid/v4");
 const moment = require("moment");
 const map = require("async/map");
+
+const externalApi = require("../external_api/api");
+
+const API_KEY = require(`./../../config/${process.env.NODE_APP}.json`).apiKey;
 
 const db = require("./../../db/models");
 const User = db.User;
@@ -92,16 +96,25 @@ exports.get = async (req, res) => {
 };
 exports.remove = async (req, res) => {
   try {
-    await User.update(
-      {
-        remove: true
-      },
-      {
-        where: {
-          id: req.body.id
-        }
+    let user = await User.findOne({
+      where: {
+        id: req.body.id
       }
-    );
+    });
+
+    user.remove = true;
+    await user.save();
+    const data = {
+      id: user.id
+    };
+
+    if (user.rol === "client") {
+      await externalApi.delClient(data);
+    }
+    if (user.rol === "user") {
+      await externalApi.delUser(data);
+    }
+
     return res.status(200).send({
       ok: "Action success"
     });
@@ -116,7 +129,8 @@ exports.create = async (req, res) => {
       email: req.body.email,
       password: bcrypt.hashSync(req.body.password, 8),
       rol: req.body.rol || "user",
-      typeOfUser: req.body.typeOfUser
+      typeOfUser: req.body.typeOfUser,
+      apikey: uuidv4()
     });
 
     let typeOfPermits = await TypeOfPermits.findOne({
@@ -144,6 +158,23 @@ exports.create = async (req, res) => {
       users.push(user);
       await client.setUsers(users);
     }
+
+    if (user.rol === "client") {
+      const data = {
+        id: user.id,
+        APIKey: user.apikey
+      };
+      await externalApi.addClient(data);
+    }
+    if (user.rol === "user") {
+      const data = {
+        id: user.id,
+        APIKey: user.apikey,
+        client_id: req.userId
+      };
+      await externalApi.addUser(data);
+    }
+
     return res.status(200).send({
       ok: "Action success"
     });
@@ -833,5 +864,66 @@ exports.ownerUserDashboard = async (req, res) => {
     return res.status(500).send({
       error: err
     });
+  }
+};
+
+exports.listCorp = async (req, res) => {
+  try {
+    if (req.body.apiKey === API_KEY) {
+      const users = await User.findAll({
+        where: {
+          [Op.or]: [{ rol: "user" }, { rol: "client" }]
+        },
+        attributes: ["id", "apikey", "UserId"]
+      });
+
+      let array = [];
+
+      users.map(item => {
+        let data = {
+          id: item.id,
+          APIKey: item.apikey
+        };
+        if (item.UserId) {
+          data["client_id"] = item.UserId;
+        }
+
+        array.push(data);
+      });
+
+      return res.status(200).send({
+        users: array
+      });
+    } else {
+      return res.status(403).send("Permissions Required!");
+    }
+  } catch (err) {
+    return res.status(500).send({
+      error: err
+    });
+  }
+};
+
+exports.updateApikey = async () => {
+  try {
+    const users = await User.findAll({});
+
+    map(
+      users,
+      async item => {
+        item.apikey = uuidv4();
+        await item.save();
+        return item;
+      },
+      async (err, results) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log("success");
+        }
+      }
+    );
+  } catch (error) {
+    console.log(error);
   }
 };
