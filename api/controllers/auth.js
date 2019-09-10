@@ -30,7 +30,8 @@ exports.signin = async (req, res) => {
   try {
     const user = await User.findOne({
       where: {
-        email: req.body.email
+        email: req.body.email,
+        remove: false
       }
     });
 

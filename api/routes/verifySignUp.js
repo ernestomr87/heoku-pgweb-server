@@ -2,18 +2,23 @@ const db = require("./../../db/models/index");
 
 const User = db.User;
 
-const checkDuplicateUserNameOrEmail = (req, res, next) => {
-  User.findOne({
-    where: {
-      email: req.body.email
-    }
-  }).then(user => {
+const checkDuplicateUserNameOrEmail = async (req, res, next) => {
+  try {
+    const user = await User.findOne({
+      where: {
+        email: req.body.email,
+        remove: false
+      }
+    });
+
     if (user) {
       res.status(400).send("Fail -> Email is already in use!");
-      return;
+    } else {
+      next();
     }
-    next();
-  });
+  } catch (error) {
+    res.status(500).send(err);
+  }
 };
 
 const signUpVerify = {};

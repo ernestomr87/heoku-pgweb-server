@@ -290,14 +290,14 @@ module.exports = {
   delClient: form => {
     return axios({
       method: "post",
-      url: `${API_ENGINE_NEX_RELAY}corp/delclientengine`,
+      url: `${API_ENGINE_NEX_RELAY}corp/delclient `,
       data: { ...form }
     });
   },
   delUser: form => {
     return axios({
       method: "post",
-      url: `${API_ENGINE_NEX_RELAY}corp/deluserengine`,
+      url: `${API_ENGINE_NEX_RELAY}corp/deluser`,
       data: { ...form }
     });
   }

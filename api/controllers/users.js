@@ -18,7 +18,15 @@ const TypeOfPermits = db.TypeOfPermits;
 exports.listAll = async (req, res) => {
   try {
     let query = {
-      attributes: ["id", "fullName", "email", "rol", "typeOfUser", "UserId"],
+      attributes: [
+        "id",
+        "fullName",
+        "email",
+        "apikey",
+        "rol",
+        "typeOfUser",
+        "UserId"
+      ],
       include: [
         {
           model: TypeOfPermits
@@ -29,7 +37,8 @@ exports.listAll = async (req, res) => {
           [Op.ne]: req.userId
         },
         remove: false
-      }
+      },
+      order: [["createdAt", "DESC"]]
     };
     if (req.userRol === "client") {
       query.where.userId = req.userId;
@@ -130,7 +139,7 @@ exports.create = async (req, res) => {
       password: bcrypt.hashSync(req.body.password, 8),
       rol: req.body.rol || "user",
       typeOfUser: req.body.typeOfUser,
-      apikey: uuidv4()
+      apikey: req.body.apikey
     });
 
     let typeOfPermits = await TypeOfPermits.findOne({
