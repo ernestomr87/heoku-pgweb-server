@@ -1,5 +1,7 @@
 ("use strict");
 
+const db = require("./../../db/models");
+const User = db.User;
 const externalApi = require("../external_api/api");
 
 module.exports = {
@@ -114,6 +116,96 @@ module.exports = {
       } = response;
 
       return res.status(200).send({ engine_id });
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
+  },
+  enginesByUser: async (req, res) => {
+    try {
+      const user = await User.findByPk(req.params.id);
+      let response;
+      const id = parseInt(req.params.id);
+
+      if (user.rol === "user") {
+        response = await externalApi.enginesByUser({ user_id: id });
+      }
+      if (user.rol === "client") {
+        response = await externalApi.enginesByClient({
+          client_id: id
+        });
+      }
+
+      const {
+        data: { client_engines }
+      } = response;
+      if (!client_engines) return res.status(200).send([]);
+      return res.status(200).send({ client_engines });
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
+  },
+  addUserEngine: async (req, res) => {
+    try {
+      const user = await User.findByPk(req.body.id);
+      let response;
+      const id = parseInt(req.body.id);
+      const engine = parseInt(req.body.engine);
+
+      if (user.rol === "user") {
+        response = await externalApi.addUserEngine({
+          user_id: id,
+          engine_id: engine
+        });
+      }
+      if (user.rol === "client") {
+        response = await externalApi.addClientEngine({
+          client_id: id,
+          engine_id: engine,
+          grant_all: 0
+        });
+      }
+
+      const {
+        data: { auth_id }
+      } = response;
+      if (!auth_id) return res.status(200).send(null);
+      return res.status(200).send({ auth_id });
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
+  },
+  delUserEngine: async (req, res) => {
+    try {
+      const user = await User.findByPk(req.body.id);
+      let response;
+      const id = parseInt(req.body.id);
+      const engine = parseInt(req.body.engine);
+
+      if (user.rol === "user") {
+        response = await externalApi.delUserEngine({
+          user_id: id,
+          engine_id: engine
+        });
+      }
+      if (user.rol === "client") {
+        response = await externalApi.delClientEngine({
+          client_id: id,
+          engine_id: engine,
+          grant_all: 1
+        });
+      }
+
+      const {
+        data: { auth_id }
+      } = response;
+      if (!auth_id) return res.status(200).send(null);
+      return res.status(200).send({ auth_id });
     } catch (err) {
       res.status(500).json({
         error: err

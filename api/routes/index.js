@@ -168,6 +168,10 @@ router.delete("/api/corp/engines", engines.delEngine);
 router.put("/api/corp/engines/enabled", engines.enabledEngine);
 router.put("/api/corp/engines/disabled", engines.disabledEngine);
 
+router.get("/api/corp/engines/users/:id", engines.enginesByUser);
+router.post("/api/corp/engines/users", engines.addUserEngine);
+router.put("/api/corp/engines/users", engines.delUserEngine);
+
 //ENGINES_USERS
 router.post("/api/users/corp", users.listCorp);
 

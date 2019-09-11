@@ -271,6 +271,55 @@ module.exports = {
       data: { ...data }
     });
   },
+  enginesByUser: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/userengines`,
+      data: { ...data }
+    });
+  },
+  enginesByUser: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/userengines`,
+      data: { ...data }
+    });
+  },
+  enginesByClient: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/clientengines`,
+      data: { ...data }
+    });
+  },
+  addClientEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/addclientengine`,
+      data: { ...data }
+    });
+  },
+  addUserEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/adduserengine`,
+      data: { ...data }
+    });
+  },
+  delUserEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/deluserengine`,
+      data: { ...data }
+    });
+  },
+  delClientEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/delclientengine`,
+      data: { ...data }
+    });
+  },
 
   //USERS
   addClient: form => {
