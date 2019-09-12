@@ -321,6 +321,14 @@ module.exports = {
     });
   },
 
+  updateClientEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/updateclientengine`,
+      data: { ...data }
+    });
+  },
+
   //USERS
   addClient: form => {
     return axios({

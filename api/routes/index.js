@@ -25,6 +25,7 @@ const router = express.Router();
 
 // EXTERNAL PANGEAMT
 router.get("/api/engines", process.getExternalEngines);
+router.get("/api/engines/user", [verifyToken, isUser], process.enginesByUser);
 router.get("/api/engines/load", [verifyToken, isAdmin], process.load);
 router.post("/api/notification", process.notification);
 router.delete(
@@ -146,31 +147,64 @@ router.put(
 );
 
 //MODELS
-router.get("/api/corp/models", models.getModels);
-router.post("/api/corp/models", models.addModel);
-router.put("/api/corp/models", models.cloneModel);
-router.delete("/api/corp/models", models.delModel);
+router.get("/api/corp/models", [verifyToken, isAdmin], models.getModels);
+router.post("/api/corp/models", [verifyToken, isAdmin], models.addModel);
+router.put("/api/corp/models", [verifyToken, isAdmin], models.cloneModel);
+router.delete("/api/corp/models", [verifyToken, isAdmin], models.delModel);
 
 //EDS
-router.get("/api/corp/eds", eds.getEds);
-router.post("/api/corp/eds", eds.addEd);
-router.delete("/api/corp/eds", eds.delEd);
-router.put("/api/corp/eds/enabled", eds.enabledEd);
-router.put("/api/corp/eds/disabled", eds.disabledEd);
+router.get("/api/corp/eds", [verifyToken, isAdmin], eds.getEds);
+router.post("/api/corp/eds", [verifyToken, isAdmin], eds.addEd);
+router.delete("/api/corp/eds", [verifyToken, isAdmin], eds.delEd);
+router.put("/api/corp/eds/enabled", [verifyToken, isAdmin], eds.enabledEd);
+router.put("/api/corp/eds/disabled", [verifyToken, isAdmin], eds.disabledEd);
 
 //SERVICES
-router.get("/api/corp/services", engines.getServices);
+router.get(
+  "/api/corp/services",
+  [verifyToken, isAdminIsCLient],
+  engines.getServices
+);
 
 //ENGINES
-router.get("/api/corp/engines", engines.getEngines);
-router.post("/api/corp/engines", engines.addEngine);
-router.delete("/api/corp/engines", engines.delEngine);
-router.put("/api/corp/engines/enabled", engines.enabledEngine);
-router.put("/api/corp/engines/disabled", engines.disabledEngine);
+router.get(
+  "/api/corp/engines",
+  [verifyToken, isAdminIsCLient],
+  engines.getEngines
+);
+router.post("/api/corp/engines", [verifyToken, isAdmin], engines.addEngine);
+router.delete("/api/corp/engines", [verifyToken, isAdmin], engines.delEngine);
+router.put(
+  "/api/corp/engines/enabled",
+  [verifyToken, isAdmin],
+  engines.enabledEngine
+);
+router.put(
+  "/api/corp/engines/disabled",
+  [verifyToken, isAdmin],
+  engines.disabledEngine
+);
+router.post(
+  "/api/corp/engines/grantAll",
+  [verifyToken, isClient],
+  engines.updateClientEngine
+);
 
-router.get("/api/corp/engines/users/:id", engines.enginesByUser);
-router.post("/api/corp/engines/users", engines.addUserEngine);
-router.put("/api/corp/engines/users", engines.delUserEngine);
+router.get(
+  "/api/corp/engines/users/:id",
+  [verifyToken, isAdminIsCLient],
+  engines.enginesByUser
+);
+router.post(
+  "/api/corp/engines/users",
+  [verifyToken, isAdminIsCLient],
+  engines.addUserEngine
+);
+router.put(
+  "/api/corp/engines/users",
+  [verifyToken, isAdminIsCLient],
+  engines.delUserEngine
+);
 
 //ENGINES_USERS
 router.post("/api/users/corp", users.listCorp);

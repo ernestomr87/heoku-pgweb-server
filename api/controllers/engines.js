@@ -127,21 +127,32 @@ module.exports = {
       const user = await User.findByPk(req.params.id);
       let response;
       const id = parseInt(req.params.id);
+      const data = {
+        engines: [],
+        user: {
+          email: user.email,
+          fullName: user.fullName,
+          rol: user.rol
+        }
+      };
 
       if (user.rol === "user") {
         response = await externalApi.enginesByUser({ user_id: id });
+        const {
+          data: { user_engines }
+        } = response;
+        data.engines = user_engines || [];
       }
       if (user.rol === "client") {
         response = await externalApi.enginesByClient({
           client_id: id
         });
+        const {
+          data: { client_engines }
+        } = response;
+        data.engines = client_engines || [];
       }
-
-      const {
-        data: { client_engines }
-      } = response;
-      if (!client_engines) return res.status(200).send([]);
-      return res.status(200).send({ client_engines });
+      return res.status(200).send({ ...data });
     } catch (err) {
       res.status(500).json({
         error: err
@@ -206,6 +217,35 @@ module.exports = {
       } = response;
       if (!auth_id) return res.status(200).send(null);
       return res.status(200).send({ auth_id });
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
+  },
+  updateClientEngine: async (req, res) => {
+    try {
+      const user = await User.findByPk(req.userId);
+
+      let response;
+      const grant_all = parseInt(req.body.grant_all);
+      const engine_id = parseInt(req.body.engine_id);
+
+      if (user.rol === "client") {
+        response = await externalApi.updateClientEngine({
+          client_id: req.userId,
+          engine_id,
+          grant_all
+        });
+
+        const {
+          data: { auth_id }
+        } = response;
+        if (!auth_id) return res.status(200).send(null);
+        return res.status(200).send({ auth_id });
+      } else {
+        return res.status(403).send("Permissions Required!");
+      }
     } catch (err) {
       res.status(500).json({
         error: err

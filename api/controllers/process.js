@@ -249,6 +249,7 @@ module.exports = {
   getExternalEngines: async (req, res) => {
     try {
       const engines = await Engines.findAll();
+
       if (engines) {
         if (!req.userId) {
           const typeOfPermits = await TypeOfPermits.findOne({
@@ -296,6 +297,49 @@ module.exports = {
       });
     } catch (err) {
       res.status(500).send({
+        error: err
+      });
+    }
+  },
+
+  enginesByUser: async (req, res) => {
+    try {
+      const id = parseInt(req.userId);
+      const user = await User.findByPk(id);
+
+      if (user.rol === "user") {
+        const response = await externalApi.enginesByUser({ user_id: id });
+        const {
+          data: { user_engines }
+        } = response;
+        if (!user_engines) return res.status(200).send([]);
+
+        const data = {
+          allowedFiles,
+          process: [
+            {
+              id: 1,
+              name: "translation",
+              updatedAt: "2019-08-12T03:29:32.000Z",
+              engines: user_engines.map(item => {
+                item.source = item.src;
+                item.target = item.tgt;
+                item.name = item.descr;
+                delete item.src;
+                delete item.tgt;
+                delete item.descr;
+                return item;
+              })
+            }
+          ]
+        };
+
+        return res.status(200).send({ ...data });
+      } else {
+        return res.status(403).send("Permissions Required!");
+      }
+    } catch (err) {
+      res.status(500).json({
         error: err
       });
     }
