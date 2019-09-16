@@ -357,5 +357,12 @@ module.exports = {
       url: `${API_ENGINE_NEX_RELAY}corp/deluser`,
       data: { ...form }
     });
+  },
+  getstats: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/getStats`,
+      data: { ...form }
+    });
   }
 };

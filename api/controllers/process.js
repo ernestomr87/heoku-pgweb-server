@@ -1,5 +1,6 @@
 ("use strict");
 const uuidv4 = require("uuid/v4");
+const moment = require("moment");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const db = require("./../../db/models");
@@ -873,6 +874,42 @@ module.exports = {
     } catch (error) {
       return res.status(500).send({
         error: error
+      });
+    }
+  },
+  getStats: async (req, res) => {
+    try {
+      const data = {
+        userId: req.body.userId || req.userId,
+        period: req.body.period,
+        from_date: moment(req.body.from_date).format("YYYY.MM.DD"),
+        to_date: moment(req.body.to_date).format("YYYY.MM.DD")
+      };
+
+      const user = await User.findByPk(data.userId);
+      const userData = {
+        email: user.email,
+        fullName: user.fullName,
+        rol: user.rol
+      };
+      data.apikey = user.apikey;
+
+      //2019.09.13
+      const response = await externalApi.getstats(data);
+      const {
+        data: { Stats }
+      } = response;
+
+      if (Stats) {
+        return res.status(200).send({ Stats, user: userData });
+      } else {
+        res.status(500).json({
+          error: { message: "Bad Request" }
+        });
+      }
+    } catch (err) {
+      res.status(500).json({
+        error: err
       });
     }
   }

@@ -36,6 +36,14 @@ app.use("/", index);
 
 var env = process.env.NODE_ENV || "production";
 
+app.use(
+  express.static("public", {
+    setHeaders: (res, path, stat) => {
+      console.log(++counter);
+    }
+  })
+);
+
 if (env === "production") {
   // Serve any static files
   app.use(express.static(path.join(__dirname, "./build")));
