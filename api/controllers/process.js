@@ -879,20 +879,33 @@ module.exports = {
   },
   getStats: async (req, res) => {
     try {
+      let userData = null;
+
+      let start, end;
+      if (req.body.period === "month") {
+        start = moment(req.body.from_date).format("YYYY.MM");
+        end = moment(req.body.to_date).format("YYYY.MM");
+      } else {
+        start = moment(req.body.from_date).format("YYYY.MM.DD");
+        end = moment(req.body.to_date).format("YYYY.MM.DD");
+      }
       const data = {
         userId: req.body.userId || req.userId,
         period: req.body.period,
-        from_date: moment(req.body.from_date).format("YYYY.MM.DD"),
-        to_date: moment(req.body.to_date).format("YYYY.MM.DD")
+        apikey: req.body.apikey,
+        from_date: start,
+        to_date: end
       };
 
-      const user = await User.findByPk(data.userId);
-      const userData = {
-        email: user.email,
-        fullName: user.fullName,
-        rol: user.rol
-      };
-      data.apikey = user.apikey;
+      if (!data.apikey) {
+        const user = await User.findByPk(data.userId);
+        userData = {
+          email: user.email,
+          fullName: user.fullName,
+          rol: user.rol
+        };
+        data.apikey = user.apikey;
+      }
 
       //2019.09.13
       const response = await externalApi.getstats(data);

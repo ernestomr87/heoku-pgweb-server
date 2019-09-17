@@ -95,7 +95,15 @@ exports.userContent = (req, res) => {
     where: {
       id: req.userId
     },
-    attributes: ["fullName", "email", "id", "rol", "typeOfUser", "UserId"],
+    attributes: [
+      "fullName",
+      "email",
+      "id",
+      "rol",
+      "typeOfUser",
+      "UserId",
+      "apikey"
+    ],
     include: [
       {
         model: Notification,
