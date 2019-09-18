@@ -210,5 +210,6 @@ router.put(
 //ENGINES_USERS
 router.post("/api/users/corp", users.listCorp);
 router.post("/api/getStats", [verifyToken], process.getStats);
+router.post("/api/translate", [verifyToken], process.translate);
 
 module.exports = router;

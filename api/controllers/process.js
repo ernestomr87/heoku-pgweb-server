@@ -727,7 +727,10 @@ module.exports = {
         const status = parseInt(req.body.data.status);
 
         if (status === 100) {
-          const response = await externalApi.retrievefile(process.fileId,apikey);
+          const response = await externalApi.retrievefile(
+            process.fileId,
+            apikey
+          );
           if (response.data.success && parseInt(response.data.status) >= 110) {
             type = _.lowerCase(getStatus(parseInt(response.data.status)));
             type = _.replace(type, " ", "_");
@@ -860,6 +863,7 @@ module.exports = {
       });
     }
   },
+
   removed: async (req, res) => {
     try {
       const id = req.body.id;
@@ -887,6 +891,7 @@ module.exports = {
       });
     }
   },
+
   getStats: async (req, res) => {
     try {
       let userData = null;
@@ -930,6 +935,29 @@ module.exports = {
           error: { message: "Bad Request" }
         });
       }
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
+  },
+
+  translate: async (req, res) => {
+    try {
+      const engine = req.body.engine;
+      const form = {
+        src: engine.source,
+        tgt: engine.target,
+        apikey: req.user.apikey,
+        engine: engine.id,
+        text: [req.body.text]
+      };
+
+      //2019.09.13
+      const response = await externalApi.translate(form);
+      const { data } = response;
+
+      return res.status(200).send({ data });
     } catch (err) {
       res.status(500).json({
         error: err

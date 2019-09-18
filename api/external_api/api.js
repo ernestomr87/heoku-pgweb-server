@@ -14,7 +14,6 @@ module.exports = {
       url: `${API_ENGINE}describeengines/${API_KEY}`
     });
   },
-
   processFile: function processFile(
     username,
     source,
@@ -41,7 +40,6 @@ module.exports = {
       }
     });
   },
-
   processFileAfterQuoteFile: function processFile(
     fileId,
     processOptionId,
@@ -58,7 +56,6 @@ module.exports = {
       }
     });
   },
-
   quoteFile: function processFile(
     username,
     source,
@@ -85,7 +82,6 @@ module.exports = {
       }
     });
   },
-
   filestatus: function retrieveFile(guids) {
     return axios({
       method: "post",
@@ -97,7 +93,6 @@ module.exports = {
       }
     });
   },
-
   retrievefile: function retrieveFile(guid, apikey) {
     return axios({
       method: "post",
@@ -368,6 +363,13 @@ module.exports = {
     return axios({
       method: "post",
       url: `${API_ENGINE_NEX_RELAY}corp/getStats`,
+      data: { ...form }
+    });
+  },
+  translate: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}translate`,
       data: { ...form }
     });
   }
