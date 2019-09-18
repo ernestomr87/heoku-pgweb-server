@@ -1,6 +1,7 @@
 var paypal = require("paypal-rest-sdk");
 const db = require("./../../db/models");
 const Process = db.Process;
+const User = db.User;
 const BillingInformation = db.BillingInformation;
 const externalApi = require("./../external_api/api");
 const commom = require("./../../config/common");
@@ -196,12 +197,30 @@ const execute = async (req, res) => {
               where: {
                 uuid: uuid
               },
-              returning: true,
               plain: true
             }
           );
 
-          await externalApi.processFileAfterQuoteFile(doc.fileId, quote);
+          const process = await Process.findOne({
+            where: {
+              uuid: uuid
+            }
+          });
+
+          const user = await User.findByPk(process.UserId);
+
+          let apikey;
+          if (req.freeUser) {
+            apikey = "casualuser";
+          } else {
+            apikey = user.apikey;
+          }
+
+          await externalApi.processFileAfterQuoteFile(
+            doc.fileId,
+            quote,
+            apikey
+          );
 
           if (req.freeUser) {
             res.redirect(commom.urls.casual_success(doc.fileId));

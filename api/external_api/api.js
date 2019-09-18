@@ -22,7 +22,8 @@ module.exports = {
     engineid,
     fileName,
     fileType,
-    file
+    file,
+    apikey
   ) {
     return axios({
       method: "post",
@@ -30,7 +31,7 @@ module.exports = {
       data: {
         notiflink: `${BASE_URL}/api/notification`,
         username,
-        apikey: API_KEY,
+        apikey,
         source,
         target,
         engineid,
@@ -41,7 +42,11 @@ module.exports = {
     });
   },
 
-  processFileAfterQuoteFile: function processFile(fileId, processOptionId) {
+  processFileAfterQuoteFile: function processFile(
+    fileId,
+    processOptionId,
+    apikey
+  ) {
     return axios({
       method: "post",
       url: `${API_ENGINE}processfile`,
@@ -49,7 +54,7 @@ module.exports = {
         notiflink: `${BASE_URL}/api/notification`,
         fileId,
         processOptionId,
-        apikey: API_KEY
+        apikey
       }
     });
   },
@@ -61,7 +66,8 @@ module.exports = {
     engineid,
     fileName,
     fileType,
-    file
+    file,
+    apikey
   ) {
     return axios({
       method: "post",
@@ -69,7 +75,7 @@ module.exports = {
       data: {
         notiflink: `${BASE_URL}/api/notification`,
         username,
-        apikey: API_KEY,
+        apikey,
         source,
         target,
         engineid,
@@ -92,13 +98,13 @@ module.exports = {
     });
   },
 
-  retrievefile: function retrieveFile(guid) {
+  retrievefile: function retrieveFile(guid, apikey) {
     return axios({
       method: "post",
       url: `${API_ENGINE}retrievefile`,
       data: {
         notiflink: `${BASE_URL}/api/notification`,
-        apikey: API_KEY,
+        apikey,
         guid
       }
     });

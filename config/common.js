@@ -2,7 +2,8 @@ const config = require(`./${process.env.NODE_APP}.json`);
 
 const common = {
   urls: {
-    base: `${config.host}:${config.port}`,
+    base: `http://localhost:3004`,
+    // base: `${config.host}:${config.port}`,
     download: uuid => `${config.host}:${config.port}/main/download/${uuid}`,
     casual_404: `${config.host}:${config.port}/main/404`,
     register_404: `${config.host}:${config.port}/dashboard/404`,

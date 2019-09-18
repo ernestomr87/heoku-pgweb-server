@@ -121,6 +121,7 @@ router.put("/api/billing", [verifyToken], billing.edit);
 
 //PAYMENTS
 router.post("/api/payment/pay", process.pay);
+router.post("/api/payment/register/pay", [verifyToken], process.pay);
 router.get("/api/payment/:uuid/:quote/return", process.return);
 router.get("/api/payment/:uuid/cancel", process.cancel);
 router.get("/api/payment/:uuid/:quote/return_free", process.return_free);

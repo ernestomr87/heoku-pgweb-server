@@ -58,6 +58,7 @@ const consultAndCreate = async (res, data) => {
     engineTarget,
     files
   } = data;
+  const apikey = "casualuser";
 
   map(
     files,
@@ -88,7 +89,8 @@ const consultAndCreate = async (res, data) => {
         engineId,
         fileName,
         fileType,
-        file
+        file,
+        apikey
       );
 
       const error = quote.data.error;
@@ -398,8 +400,8 @@ module.exports = {
       const engineDomain = req.body.engine.domain;
       const engineSource = req.body.engine.source;
       const engineTarget = req.body.engine.target;
-
       const files = req.body.files;
+      const apikey = req.user.apikey;
 
       map(
         files,
@@ -416,7 +418,8 @@ module.exports = {
               engineId,
               fileName,
               fileType,
-              file
+              file,
+              apikey
             )
             .then(result => {
               const error = result.data.error;
@@ -501,13 +504,14 @@ module.exports = {
       const engineSource = req.body.engine.source;
       const engineTarget = req.body.engine.target;
       const files = req.body.files;
-
+      const apikey = req.user.apikey;
       map(
         files,
         async item => {
           const fileName = item.fileName;
           const fileType = item.fileType;
           const file = item.file.replace(`data:${fileType};base64,`, "");
+
           const process = await Process.create({
             fileName,
             // fileId,
@@ -532,7 +536,8 @@ module.exports = {
               engineId,
               fileName,
               fileType,
-              file
+              file,
+              apikey
             );
           } else {
             quote = await externalApi.quoteFile(
@@ -542,7 +547,8 @@ module.exports = {
               engineId,
               fileName,
               fileType,
-              file
+              file,
+              apikey
             );
           }
 
@@ -608,10 +614,12 @@ module.exports = {
     try {
       const fileId = req.body.fileId;
       const quote = req.body.quote;
+      const apikey = req.user.apikey;
 
       let result = await externalApi.processFileAfterQuoteFile(
         fileId,
-        quote.optionid
+        quote.optionid,
+        apikey
       );
 
       await Process.update(
@@ -644,6 +652,7 @@ module.exports = {
     console.log("\x1b[33m%s\x1b[0m", "*******************************");
 
     if (req.body.fileid && req.body.data) {
+      let apikey = req.body.data.apikey;
       let type = _.lowerCase(getStatus(req.body.data.status));
       type = _.replace(type, " ", "_");
       type = _.replace(type, "/", "_");
@@ -718,7 +727,7 @@ module.exports = {
         const status = parseInt(req.body.data.status);
 
         if (status === 100) {
-          const response = await externalApi.retrievefile(process.fileId);
+          const response = await externalApi.retrievefile(process.fileId,apikey);
           if (response.data.success && parseInt(response.data.status) >= 110) {
             type = _.lowerCase(getStatus(parseInt(response.data.status)));
             type = _.replace(type, " ", "_");
@@ -806,6 +815,7 @@ module.exports = {
   },
 
   return: async (req, res) => {
+    req.freeUser = false;
     return paypal.execute(req, res);
   },
 
@@ -910,11 +920,11 @@ module.exports = {
       //2019.09.13
       const response = await externalApi.getstats(data);
       const {
-        data: { Stats }
+        data: { Stats, FileStats }
       } = response;
 
       if (Stats) {
-        return res.status(200).send({ Stats, user: userData });
+        return res.status(200).send({ Stats, FileStats, user: userData });
       } else {
         res.status(500).json({
           error: { message: "Bad Request" }

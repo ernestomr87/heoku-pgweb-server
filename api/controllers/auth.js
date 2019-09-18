@@ -54,7 +54,8 @@ exports.signin = async (req, res) => {
         rol: user.rol,
         hasClient: user.UserId,
         TypeOfPermitId: user.TypeOfPermitId,
-        typeOfUser: user.typeOfUser
+        typeOfUser: user.typeOfUser,
+        apikey: user.apikey
       },
       config.secret,
       {
