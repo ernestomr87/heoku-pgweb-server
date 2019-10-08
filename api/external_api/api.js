@@ -160,11 +160,11 @@ module.exports = {
   },
 
   //API MODELS
-  getModels: () => {
+  getModels: data => {
     return axios({
       method: "post",
       url: `${API_ENGINE_NEX_RELAY}corp/models`,
-      data: {}
+      data: { ...data }
     });
   },
   addModel: data => {

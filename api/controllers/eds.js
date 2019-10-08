@@ -52,14 +52,9 @@ module.exports = {
 
       const response = await externalApi.addEd(data);
       const {
-        data: { edis, engineid, modelid }
+        data: { edis }
       } = response;
 
-      if (!engineid && !modelid) {
-        return res.status(500).send({
-          error: "Model and Engine are 0"
-        });
-      }
       return res.status(200).send({ edis });
     } catch (err) {
       res.status(500).json({

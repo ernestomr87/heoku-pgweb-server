@@ -5,7 +5,15 @@ const externalApi = require("../external_api/api");
 module.exports = {
   getModels: async (req, res) => {
     try {
-      const response = await externalApi.getModels();
+      let response;
+      if (req.user && req.user.rol === "client") {
+        const data = {
+          client_id: req.user.id
+        };
+        response = await externalApi.getModels(data);
+      } else {
+        response = await externalApi.getModels();
+      }
       const {
         data: { models }
       } = response;

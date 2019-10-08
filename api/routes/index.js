@@ -148,9 +148,17 @@ router.put(
 );
 
 //MODELS
-router.get("/api/corp/models", [verifyToken, isAdmin], models.getModels);
+router.get(
+  "/api/corp/models",
+  [verifyToken, isAdminIsCLient],
+  models.getModels
+);
 router.post("/api/corp/models", [verifyToken, isAdmin], models.addModel);
-router.put("/api/corp/models", [verifyToken, isAdminIsCLient], models.cloneModel);
+router.put(
+  "/api/corp/models",
+  [verifyToken, isAdminIsCLient],
+  models.cloneModel
+);
 router.delete("/api/corp/models", [verifyToken, isAdmin], models.delModel);
 
 //EDS
