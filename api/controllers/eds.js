@@ -47,6 +47,14 @@ module.exports = {
       const data = {
         nodeid: req.body.nodeid,
         modelid: req.body.modelid
+
+  //       "nodeid":17,
+	// "modelid":6,
+	// "engineid":255,
+	// "status": -1
+
+        // nodeid: values.node_id,
+        // modelid: values.model_id
         // status: req.body.status
       };
 

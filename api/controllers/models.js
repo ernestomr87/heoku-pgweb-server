@@ -28,7 +28,7 @@ module.exports = {
         tgt: req.body.tgt,
         path: req.body.path,
         father: req.body.father,
-        olmode: req.body.olmode,
+        olmode: req.body.olmode
       };
 
       const response = await externalApi.addModel(data);
@@ -69,6 +69,9 @@ module.exports = {
         olmode: req.body.olmode,
         father: req.body.father
       };
+      if (req.body.client_id) {
+        data["client_id"] = req.body.client_id;
+      }
 
       const response = await externalApi.cloneModel(data);
       const {
