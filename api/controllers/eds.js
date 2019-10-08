@@ -47,14 +47,6 @@ module.exports = {
       const data = {
         nodeid: req.body.nodeid,
         modelid: req.body.modelid
-
-  //       "nodeid":17,
-	// "modelid":6,
-	// "engineid":255,
-	// "status": -1
-
-        // nodeid: values.node_id,
-        // modelid: values.model_id
         // status: req.body.status
       };
 
@@ -64,7 +56,7 @@ module.exports = {
       } = response;
 
       if (!engineid && !modelid) {
-        res.status(500).json({
+        return res.status(500).send({
           error: "Model and Engine are 0"
         });
       }
