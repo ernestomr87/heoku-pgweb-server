@@ -75,11 +75,9 @@ module.exports = {
         name: req.body.name,
         descr: req.body.descr,
         olmode: req.body.olmode,
-        father: req.body.father
+        father: req.body.father,
+        client_id: req.user.rol === "admin" ? 0 : req.user.id
       };
-      if (req.body.client_id) {
-        data["client_id"] = req.body.client_id;
-      }
 
       const response = await externalApi.cloneModel(data);
       const {
