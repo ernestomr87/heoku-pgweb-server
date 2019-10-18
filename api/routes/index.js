@@ -153,7 +153,7 @@ router.get(
   [verifyToken, isAdminIsCLient],
   models.getModels
 );
-router.post("/api/corp/models", [verifyToken, isAdmin], models.addModel);
+router.post("/api/corp/models", [verifyToken, isAdminIsCLient], models.addModel);
 router.put(
   "/api/corp/models",
   [verifyToken, isAdminIsCLient],
