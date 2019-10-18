@@ -153,13 +153,13 @@ router.get(
   [verifyToken, isAdminIsCLient],
   models.getModels
 );
-router.post("/api/corp/models", [verifyToken, isAdminIsCLient], models.addModel);
+router.post("/api/corp/models", [verifyToken, isAdmin], models.addModel);
 router.put(
   "/api/corp/models",
   [verifyToken, isAdminIsCLient],
   models.cloneModel
 );
-router.delete("/api/corp/models", [verifyToken, isAdmin], models.delModel);
+router.delete("/api/corp/models", [verifyToken, isAdminIsCLient], models.delModel);
 
 //EDS
 router.get("/api/corp/eds", [verifyToken, isAdmin], eds.getEds);
