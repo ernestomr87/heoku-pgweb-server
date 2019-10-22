@@ -1,14 +1,10 @@
 const jwt = require("jsonwebtoken");
-const requestIp = require("request-ip");
 const config = require(`./../../config/${process.env.NODE_APP}.json`);
 const db = require("./../../db/models/index");
 const User = db.User;
 
 const verifyToken = async (req, res, next) => {
-  const clientIp = requestIp.getClientIp(req);
-  console.log("\x1b[33m%s\x1b[0m", "req.headers.origin", clientIp);
   let token = req.headers["x-access-token"] || req.body.token;
-
   if (!token) {
     return res.status(403).send({
       auth: false,

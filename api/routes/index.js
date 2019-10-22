@@ -36,6 +36,7 @@ router.delete(
 router.post("/api/process_file", process.sendFileToExternalProcess);
 
 //AUTH
+router.post("/api/auth/token", auth.refreshToken);
 router.post("/api/auth/signin", auth.signin);
 router.post("/api/auth/signup", [checkDuplicateUserNameOrEmail], auth.signup);
 

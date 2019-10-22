@@ -1,6 +1,9 @@
 ("use strict");
+const util = require("util");
 const uuidv4 = require("uuid/v4");
 const moment = require("moment");
+const fs = require("fs");
+const request = require("request");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const db = require("./../../db/models");
@@ -125,6 +128,42 @@ const consultAndCreate = async (res, data) => {
       });
     }
   );
+};
+
+const saveFile = async (file, fileName, fileType) => {
+  try {
+    file = file.replace(`data:${fileType};base64,`, "");
+    let buff = Buffer.from(file, "base64");
+    await fs.writeFile(
+      `uploads/${fileName}`,
+      buff,
+      { encoding: "base64" },
+      async err => {
+        if (err) {
+          console.log(err);
+          return false;
+        } else {
+          console.log("File created");
+          return true;
+        }
+      }
+    );
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
+const sendFile = options => {
+  return new Promise(function(resolve, reject) {
+    request(options, function(err, res, body) {
+      if (err) {
+        return reject(err);
+      } else {
+        return resolve(body);
+      }
+    });
+  });
 };
 
 module.exports = {
@@ -519,12 +558,13 @@ module.exports = {
       const engineTarget = req.body.engine.target;
       const files = req.body.files;
       const apikey = req.user.apikey;
+
       map(
         files,
         async item => {
           const fileName = item.fileName;
           const fileType = item.fileType;
-          const file = item.file.replace(`data:${fileType};base64,`, "");
+          const file = item.file;
 
           const process = await Process.create({
             fileName,
@@ -541,36 +581,36 @@ module.exports = {
             email: username
           });
 
-          let quote;
-          if (req.user.typeOfUser === 1) {
-            quote = await externalApi.processFile(
-              username,
-              engineSource,
-              engineTarget,
-              engineId,
-              fileName,
-              fileType,
-              file,
-              apikey
-            );
-          } else {
-            quote = await externalApi.quoteFile(
-              username,
-              engineSource,
-              engineTarget,
-              engineId,
-              fileName,
-              fileType,
-              file,
-              apikey
-            );
-          }
+          await saveFile(file, fileName, fileType);
 
-          const error = quote.data.error;
-          const errorMessage = quote.data.errormessage;
-          const fileId = quote.data.fileId;
+          const options = {
+            method: "POST",
+            uri: "http://prod.pangeamt.com:8080/PGFile/v1/sendfile",
+            headers: {
+              // Authorization: "Basic " + auth,
+              "Content-Type": "multipart/form-data"
+            },
+            formData: {
+              file: fs.createReadStream(`uploads/${fileName}`),
+              title: fileName,
+              engine: engineId,
+              src: engineSource,
+              tgt: engineTarget,
+              apikey: apikey,
+              processname: "PGWEB",
+              username: username,
+              notiflink: "http://pgweb.pangeamt.com:3004/api/notification",
+              modestatus: req.user.typeOfUser === 1 ? 10 : 5
+            }
+          };
 
-          if (error !== 0 && fileId && req.userId) {
+          let body = await sendFile(options);
+          body = JSON.parse(body);
+
+          console.log(body);
+
+          const fileId = body.fileId;
+          if (fileId && req.userId) {
             const user = await User.findOne({
               where: {
                 id: req.userId
@@ -587,7 +627,6 @@ module.exports = {
                 aux = client.email;
               }
             }
-
             await Process.update(
               {
                 fileId,
@@ -600,21 +639,23 @@ module.exports = {
               }
             );
             user.addProcess(process);
-
             return true;
           } else {
             throw new Error(errorMessage);
           }
         },
-        err => {
+        (err, contents) => {
+          console.log(contents);
+
           if (err) {
             return res.status(500).send({
               error: err
             });
+          } else {
+            return res.status(200).json({
+              data: "ok"
+            });
           }
-          return res.status(200).json({
-            data: "ok"
-          });
         }
       );
     } catch (error) {

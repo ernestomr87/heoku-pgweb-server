@@ -7,7 +7,10 @@ const TypeOfPermits = db.TypeOfPermits;
 const BillingInformation = db.BillingInformation;
 
 var jwt = require("jsonwebtoken");
+var randtoken = require('rand-token') 
 var bcrypt = require("bcryptjs");
+
+var refreshTokens = {};
 
 exports.signup = (req, res) => {
   // Save User to Database
@@ -63,6 +66,9 @@ exports.signin = async (req, res) => {
       }
     );
 
+    var refreshToken = randtoken.uid(256);
+    refreshTokens[refreshToken] = req.body.email;
+
     let needBillingInformation = false;
     if (user.rol === "client" || (user.rol === "user" && !user.UserId)) {
       const bi = await BillingInformation.findOne({
@@ -78,6 +84,7 @@ exports.signin = async (req, res) => {
     res.status(200).send({
       auth: true,
       accessToken: token,
+      refreshToken: refreshToken,
       id: user.id,
       email: user.email,
       rol: user.rol,
@@ -87,6 +94,40 @@ exports.signin = async (req, res) => {
     });
   } catch (error) {
     res.status(500).send("Error -> " + error);
+  }
+};
+
+exports.refreshToken = async (req, res) => {
+  var email = req.body.email;
+  var refreshToken = req.body.refreshToken;
+  if (refreshToken in refreshTokens && refreshTokens[refreshToken] === email) {
+    const user = await User.findOne({
+      where: {
+        email: req.body.email,
+        remove: false
+      }
+    });
+
+    var token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        rol: user.rol,
+        hasClient: user.UserId,
+        TypeOfPermitId: user.TypeOfPermitId,
+        typeOfUser: user.typeOfUser,
+        apikey: user.apikey
+      },
+      config.secret,
+      {
+        expiresIn: 86400 // expires in 24 hours
+      }
+    );
+    res.status(200).send({
+      accessToken: token
+    });
+  } else {
+    res.send(401);
   }
 };
 
