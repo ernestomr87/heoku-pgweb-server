@@ -2,8 +2,8 @@ const config = require(`./${process.env.NODE_APP}.json`);
 
 const common = {
   urls: {
-    base: `http://localhost:3004`,
-    // base: `http://pgweb.pangeamt.com:3004`,
+    // base: `http://localhost:3004`,
+    base: `http://pgweb.pangeamt.com:3004`,
     download: (hostClient, uuid) => `${hostClient}/main/download/${uuid}`,
     casual_404: hostClient => `${hostClient}/main/404`,
     register_404: hostClient => `${hostClient}/dashboard/404`,
