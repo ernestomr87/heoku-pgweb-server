@@ -65,6 +65,7 @@ router.post(
   process.processFileAfterQuoteFile
 );
 router.put("/api/process/downloaded", [verifyToken], process.setDownload);
+router.get("/api/file", [verifyToken], process.download);
 router.put("/api/process/removed", [verifyToken], process.removed);
 
 //USERS
@@ -160,7 +161,11 @@ router.put(
   [verifyToken, isAdminIsCLient],
   models.cloneModel
 );
-router.delete("/api/corp/models", [verifyToken, isAdminIsCLient], models.delModel);
+router.delete(
+  "/api/corp/models",
+  [verifyToken, isAdminIsCLient],
+  models.delModel
+);
 
 //EDS
 router.get("/api/corp/eds", [verifyToken, isAdmin], eds.getEds);

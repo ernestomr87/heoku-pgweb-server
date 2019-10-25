@@ -104,6 +104,20 @@ module.exports = {
       }
     });
   },
+  downloadfile: function retrieveFile(fileid, apikey) {
+    return axios({
+      method: "get",
+      responseType: "stream",
+      url: `${API_ENGINE}download?fileid=${fileid}&apikey=${apikey}`
+    });
+  },
+  sendfile: function(form) {
+    return axios
+      .create({
+        headers: form.getHeaders()
+      })
+      .post(`${API_ENGINE}sendfile`, form);
+  },
 
   //API NODES
   getNodes: () => {

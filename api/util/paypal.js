@@ -20,6 +20,7 @@ const calculatePrice = (price, applyTax) => {
 const pay = async (req, res) => {
   const uuid = req.body.uuid;
   const quote = req.body.quote;
+  const hostClient = req.body.hostClient;
 
   const billing = req.body.billing ? JSON.parse(req.body.billing) : null;
   const applyTax = billing
@@ -30,9 +31,9 @@ const pay = async (req, res) => {
 
   if (!uuid || !quote) {
     if (req.userId) {
-      return res.redirect(commom.urls.register_404);
+      return res.redirect(commom.urls.register_404(hostClient));
     } else {
-      return res.redirect(commom.urls.casual_404);
+      return res.redirect(commom.urls.casual_404(hostClient));
     }
   }
 
@@ -41,6 +42,17 @@ const pay = async (req, res) => {
       uuid: uuid
     }
   });
+
+  await Process.update(
+    {
+      hostClient
+    },
+    {
+      where: {
+        uuid: uuid
+      }
+    }
+  );
 
   if (billing) {
     const billingInfo = await BillingInformation.create({
@@ -59,9 +71,9 @@ const pay = async (req, res) => {
 
   if (!selected || !selected.length) {
     if (req.userId) {
-      return res.redirect(commom.urls.register_404);
+      return res.redirect(commom.urls.register_404(hostClient));
     } else {
-      return res.redirect(commom.urls.casual_404);
+      return res.redirect(commom.urls.casual_404(hostClient));
     }
   }
 
@@ -118,9 +130,9 @@ const pay = async (req, res) => {
   paypal.payment.create(create_payment_json, function(error, payment) {
     if (error) {
       if (req.userId) {
-        res.redirect(commom.urls.register_404);
+        res.redirect(commom.urls.register_404(hostClient));
       } else {
-        res.redirect(commom.urls.casual_404);
+        res.redirect(commom.urls.casual_404(hostClient));
       }
     } else {
       var links = {};
@@ -135,9 +147,9 @@ const pay = async (req, res) => {
         res.redirect(links["approval_url"].href);
       } else {
         if (req.userId) {
-          res.redirect(commom.urls.register_404);
+          res.redirect(commom.urls.register_404(hostClient));
         } else {
-          res.redirect(commom.urls.casual_404);
+          res.redirect(commom.urls.casual_404(hostClient));
         }
       }
     }
@@ -159,29 +171,28 @@ const execute = async (req, res) => {
     }
   } else {
     paypal.payment.execute(paymentId, payerId, async (error, payment) => {
+      let doc = await Process.findOne({
+        where: {
+          uuid: uuid
+        }
+      });
       if (error) {
         if (req.freeUser) {
-          res.redirect(commom.urls.casual_error(uuid));
+          res.redirect(commom.urls.casual_error(doc.hostClient, uuid));
         } else {
-          res.redirect(commom.urls.register_error(uuid));
+          res.redirect(commom.urls.register_error(doc.hostClient, uuid));
         }
       } else {
         if (payment.state == "approved") {
-          const doc = await Process.findOne({
-            where: {
-              uuid: uuid
-            }
-          });
-
           const selected = doc.quotes.filter(item => {
             return item.optionid === parseInt(quote);
           });
 
           if (!selected || !selected.length) {
             if (req.freeUser) {
-              res.redirect(commom.urls.casual_404);
+              res.redirect(commom.urls.casual_404(doc.hostClient));
             } else {
-              res.redirect(commom.urls.register_404);
+              res.redirect(commom.urls.register_404(doc.hostClient));
             }
           }
 
@@ -201,13 +212,7 @@ const execute = async (req, res) => {
             }
           );
 
-          const process = await Process.findOne({
-            where: {
-              uuid: uuid
-            }
-          });
-
-          const user = await User.findByPk(process.UserId);
+          const user = await User.findByPk(doc.UserId);
 
           let apikey;
           if (req.freeUser) {
@@ -223,15 +228,19 @@ const execute = async (req, res) => {
           );
 
           if (req.freeUser) {
-            res.redirect(commom.urls.casual_success(doc.fileId));
+            res.redirect(
+              commom.urls.casual_success(doc.hostClient, doc.fileId)
+            );
           } else {
-            res.redirect(commom.urls.register_success(doc.fileId));
+            res.redirect(
+              commom.urls.register_success(doc.hostClient, doc.fileId)
+            );
           }
         } else {
           if (req.freeUser) {
-            res.redirect(commom.urls.casual_error(uuid));
+            res.redirect(commom.urls.casual_error(doc.hostClient, uuid));
           } else {
-            res.redirect(commom.urls.register_error(uuid));
+            res.redirect(commom.urls.register_error(doc.hostClient, uuid));
           }
         }
       }

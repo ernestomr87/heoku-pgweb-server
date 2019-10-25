@@ -1,9 +1,11 @@
 ("use strict");
-const util = require("util");
 const uuidv4 = require("uuid/v4");
 const moment = require("moment");
+
+const FormData = require("form-data");
 const fs = require("fs");
-const request = require("request");
+const Path = require("path");
+
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const db = require("./../../db/models");
@@ -48,6 +50,22 @@ const filterEngines = (engines, types) => {
   return newArrays;
 };
 
+const deleteFolderRecursive = path => {
+  if (fs.existsSync(path)) {
+    fs.readdirSync(path).forEach((file, index) => {
+      const curPath = Path.join(path, file);
+      if (fs.lstatSync(curPath).isDirectory()) {
+        // recurse
+        deleteFolderRecursive(curPath);
+      } else {
+        // delete file
+        fs.unlinkSync(curPath);
+      }
+    });
+    fs.rmdirSync(path);
+  }
+};
+
 const consultAndCreate = async (res, data) => {
   const {
     username,
@@ -63,12 +81,16 @@ const consultAndCreate = async (res, data) => {
   } = data;
   const apikey = "casualuser";
 
+  const folderName = moment().valueOf();
+  const pathFolder = Path.resolve(__dirname, `./../../uploads/${folderName}/`);
+
   map(
     files,
     async item => {
       const fileName = item.fileName;
       const fileType = item.fileType;
-      const file = item.file.replace(`data:${fileType};base64,`, "");
+      const file = item.file;
+
       const process = await Process.create({
         fileName,
         // fileId,
@@ -85,94 +107,130 @@ const consultAndCreate = async (res, data) => {
         email: username
       });
 
-      const quote = await externalApi.quoteFile(
-        username,
-        engineSource,
-        engineTarget,
-        engineId,
-        fileName,
-        fileType,
-        file,
-        apikey
+      fs.mkdirSync(pathFolder);
+      const path = Path.resolve(
+        __dirname,
+        `./../../uploads/${folderName}/`,
+        fileName
       );
 
-      const error = quote.data.error;
-      const errorMessage = quote.data.errormessage;
-      const fileId = quote.data.fileId;
+      const save = await saveFile(file, folderName, fileName, fileType);
 
-      if (error !== 0 && fileId) {
-        await Process.update(
-          {
-            fileId
-          },
-          {
-            where: {
-              id: process.id
-            }
-          }
+      if (save) {
+        let form = new FormData();
+
+        form.append("file", fs.createReadStream(path));
+        form.append("title", fileName);
+        form.append("engine", engineId);
+        form.append("src", engineSource);
+        form.append("tgt", engineTarget);
+        form.append("apikey", apikey);
+        form.append("processname", "PGWEB");
+        form.append("username", username);
+        form.append("modestatus", 5);
+        form.append(
+          "notiflink",
+          "http://pgweb.pangeamt.com:3004/api/notification"
         );
-        return true;
+
+        let body = await externalApi.sendfile(form);
+
+        const fileId = body.data.fileId;
+        if (fileId) {
+          await Process.update(
+            {
+              fileId
+            },
+            {
+              where: {
+                id: process.id
+              }
+            }
+          );
+
+          return true;
+        } else {
+          throw new Error(errorMessage);
+        }
       } else {
-        throw new Error(errorMessage);
+        throw new Error("Error to save file");
       }
     },
     err => {
+      deleteFolderRecursive(pathFolder);
       if (err) {
         return res.status(500).send({
           error: err
         });
+      } else {
+        mailer.main(username, "received", null, true);
+        return res.status(200).json({
+          data: "ok"
+        });
       }
-      mailer.main(username, "received", null, true);
-      return res.status(200).json({
-        data: "ok"
-      });
     }
   );
 };
 
-const saveFile = async (file, fileName, fileType) => {
+const saveFile = async (file, folderName, fileName, fileType) => {
   try {
     file = file.replace(`data:${fileType};base64,`, "");
     let buff = Buffer.from(file, "base64");
-    await fs.writeFile(
-      `uploads/${fileName}`,
-      buff,
-      { encoding: "base64" },
-      async err => {
-        if (err) {
-          console.log(err);
-          return false;
-        } else {
-          console.log("File created");
-          return true;
+
+    return new Promise((resolve, reject) => {
+      fs.writeFile(
+        `uploads/${folderName}/${fileName}`,
+        buff,
+        { encoding: "base64" },
+        async err => {
+          if (err) {
+            return reject(err);
+          } else {
+            return resolve(true);
+          }
         }
-      }
-    );
+      );
+    });
   } catch (error) {
     console.log(error);
     return false;
   }
 };
 
-const sendFile = options => {
-  return new Promise(function(resolve, reject) {
-    request(options, function(err, res, body) {
-      if (err) {
-        return reject(err);
-      } else {
-        return resolve(body);
-      }
+const downloadFile = async (fileid, apikey, filename) => {
+  const response = await externalApi.downloadfile(fileid, apikey);
+  const folderName = moment().valueOf();
+
+  const path = Path.resolve(
+    __dirname,
+    `./../../downloads/${folderName}/`,
+    filename
+  );
+  const pathFolder = Path.resolve(
+    __dirname,
+    `./../../downloads/${folderName}/`
+  );
+  fs.mkdirSync(pathFolder);
+  const writer = fs.createWriteStream(path);
+  response.data.pipe(writer);
+
+  return new Promise((resolve, reject) => {
+    writer.on("finish", () => {
+      return resolve(path);
+    });
+    writer.on("error", error => {
+      return reject(error);
     });
   });
 };
 
 module.exports = {
   getProcess: async (req, res) => {
-    console.log(
-      "\x1b[33m%s\x1b[0m",
-      "req.headers.origin",
-      JSON.stringify(req.headers)
-    );
+    // console.log(
+    //   "\x1b[33m%s\x1b[0m",
+    //   "req.headers.origin",
+    //   JSON.stringify(req.headers)
+    // );
     try {
       const user = await User.findOne({
         where: {
@@ -559,6 +617,12 @@ module.exports = {
       const files = req.body.files;
       const apikey = req.user.apikey;
 
+      const folderName = moment().valueOf();
+      const pathFolder = Path.resolve(
+        __dirname,
+        `./../../uploads/${folderName}/`
+      );
+
       map(
         files,
         async item => {
@@ -581,72 +645,74 @@ module.exports = {
             email: username
           });
 
-          await saveFile(file, fileName, fileType);
+          fs.mkdirSync(pathFolder);
+          const path = Path.resolve(
+            __dirname,
+            `./../../uploads/${folderName}/`,
+            fileName
+          );
 
-          const options = {
-            method: "POST",
-            uri: "http://prod.pangeamt.com:8080/PGFile/v1/sendfile",
-            headers: {
-              // Authorization: "Basic " + auth,
-              "Content-Type": "multipart/form-data"
-            },
-            formData: {
-              file: fs.createReadStream(`uploads/${fileName}`),
-              title: fileName,
-              engine: engineId,
-              src: engineSource,
-              tgt: engineTarget,
-              apikey: apikey,
-              processname: "PGWEB",
-              username: username,
-              notiflink: "http://pgweb.pangeamt.com:3004/api/notification",
-              modestatus: req.user.typeOfUser === 1 ? 10 : 5
-            }
-          };
+          const save = await saveFile(file, folderName, fileName, fileType);
 
-          let body = await sendFile(options);
-          body = JSON.parse(body);
+          if (save) {
+            let form = new FormData();
 
-          console.log(body);
+            form.append("file", fs.createReadStream(path));
+            form.append("title", fileName);
+            form.append("engine", engineId);
+            form.append("src", engineSource);
+            form.append("tgt", engineTarget);
+            form.append("apikey", apikey);
+            form.append("processname", "PGWEB");
+            form.append("username", username);
+            form.append("modestatus", req.user.typeOfUser === 1 ? 10 : 5);
+            form.append(
+              "notiflink",
+              "http://pgweb.pangeamt.com:3004/api/notification"
+            );
 
-          const fileId = body.fileId;
-          if (fileId && req.userId) {
-            const user = await User.findOne({
-              where: {
-                id: req.userId
-              }
-            });
-            let aux = null;
-            if (user.UserId) {
-              const client = await User.findOne({
+            let body = await externalApi.sendfile(form);
+
+            const fileId = body.data.fileId;
+            if (fileId && req.userId) {
+              const user = await User.findOne({
                 where: {
-                  id: user.UserId
+                  id: req.userId
                 }
               });
-              if (client) {
-                aux = client.email;
-              }
-            }
-            await Process.update(
-              {
-                fileId,
-                client: aux
-              },
-              {
-                where: {
-                  id: process.id
+              let aux = null;
+              if (user.UserId) {
+                const client = await User.findOne({
+                  where: {
+                    id: user.UserId
+                  }
+                });
+                if (client) {
+                  aux = client.email;
                 }
               }
-            );
-            user.addProcess(process);
-            return true;
+              await Process.update(
+                {
+                  fileId,
+                  client: aux
+                },
+                {
+                  where: {
+                    id: process.id
+                  }
+                }
+              );
+              user.addProcess(process);
+              return true;
+            } else {
+              throw new Error(errorMessage);
+            }
           } else {
-            throw new Error(errorMessage);
+            throw new Error("Error to save file");
           }
         },
-        (err, contents) => {
-          console.log(contents);
-
+        err => {
+          deleteFolderRecursive(pathFolder);
           if (err) {
             return res.status(500).send({
               error: err
@@ -702,99 +768,91 @@ module.exports = {
    *  Notificaciones desde el motor de Traduccion
    */
   notification: async (req, res) => {
-    console.log("\x1b[33m%s\x1b[0m", "*******************************");
-    console.log("\x1b[33m%s\x1b[0m", JSON.stringify(req.body));
-    console.log("\x1b[33m%s\x1b[0m", "*******************************");
+    try {
+      console.log("\x1b[33m%s\x1b[0m", "*******************************");
+      console.log("\x1b[33m%s\x1b[0m", JSON.stringify(req.body));
+      console.log("\x1b[33m%s\x1b[0m", "*******************************");
 
-    if (req.body.fileid && req.body.data) {
-      let apikey = req.body.data.apikey;
-      let type = _.lowerCase(getStatus(req.body.data.status));
-      type = _.replace(type, " ", "_");
-      type = _.replace(type, "/", "_");
-      console.log("\x1b[33m%s\x1b[0m", "NOTIFICATION", type);
-
-      let query = { status: type, uuid: uuidv4() };
-
-      if (req.body.data.status === 7) {
-        if (req.body.quotes.length) {
-          query["quotes"] = req.body.quotes;
-        } else {
-          delete query.status;
+      if (req.body.fileid && req.body.data) {
+        let apikey = req.body.data.apikey;
+        let type = _.lowerCase(getStatus(req.body.data.status));
+        type = _.replace(type, " ", "_");
+        type = _.replace(type, "/", "_");
+        console.log("\x1b[33m%s\x1b[0m", "NOTIFICATION", type);
+        let query = { status: type, uuid: uuidv4() };
+        if (req.body.data.status === 7) {
+          if (req.body.quotes.length) {
+            query["quotes"] = req.body.quotes;
+          } else {
+            delete query.status;
+          }
         }
-      }
-
-      try {
-        await Process.update(query, {
-          where: {
-            fileId: req.body.fileid
-          }
-        });
-
-        let process = await Process.findOne({
-          where: { fileId: req.body.fileid }
-        });
-
-        // let email = process.email;
-        // let freeUser = process.email ? true : false;
-
-        let noty = {
-          type: type,
-          data: {
-            fileId: req.body.fileid,
-            fileName: process.fileName,
-            userId: process.UserId,
-            email: process.email
-          }
-        };
-
-        let notification = await Notification.findOrCreate({
-          where: {
-            data: {
+        try {
+          await Process.update(query, {
+            where: {
               fileId: req.body.fileid
             }
-          },
-          defaults: noty
-        });
-
-        if (notification[1]) {
-          if (process.UserId) {
-            let user = await User.findOne({
-              where: { id: process.UserId }
-            });
-            email = user.email;
-            user.addNotifications(notification[0]);
-          }
-        } else {
-          await Notification.update(
-            {
-              type: type
+          });
+          let process = await Process.findOne({
+            where: { fileId: req.body.fileid }
+          });
+          // let email = process.email;
+          // let freeUser = process.email ? true : false;
+          let noty = {
+            type: type,
+            data: {
+              fileId: req.body.fileid,
+              fileName: process.fileName,
+              userId: process.UserId,
+              email: process.email
+            }
+          };
+          let notification = await Notification.findOrCreate({
+            where: {
+              data: {
+                fileId: req.body.fileid
+              }
             },
-            {
-              where: {
-                data: {
-                  fileId: req.body.fileid
+            defaults: noty
+          });
+          if (notification[1]) {
+            if (process.UserId) {
+              let user = await User.findOne({
+                where: { id: process.UserId }
+              });
+              email = user.email;
+              user.addNotifications(notification[0]);
+            }
+          } else {
+            await Notification.update(
+              {
+                type: type
+              },
+              {
+                where: {
+                  data: {
+                    fileId: req.body.fileid
+                  }
                 }
               }
-            }
-          );
-        }
+            );
+          }
+          const status = parseInt(req.body.data.status);
+          if (status === 100) {
+            const response = await downloadFile(
+              process.fileId,
+              apikey,
+              process.fileName
+            );
+            console.log(response);
 
-        const status = parseInt(req.body.data.status);
-
-        if (status === 100) {
-          const response = await externalApi.retrievefile(
-            process.fileId,
-            apikey
-          );
-          if (response.data.success && parseInt(response.data.status) >= 110) {
-            type = _.lowerCase(getStatus(parseInt(response.data.status)));
+            type = _.lowerCase(getStatus(parseInt(status)));
             type = _.replace(type, " ", "_");
             type = _.replace(type, "/", "_");
-
             await Process.update(
               {
                 status: type,
-                fileDownload: response.data.data
+                fileDownloadFolder: response
               },
               {
                 where: {
@@ -803,35 +861,35 @@ module.exports = {
               }
             );
           }
+          // if (freeUser) {
+          //   if (email) {
+          //     //Envio de Email Usuario Casual
+          //     mailer.main(email, type, process.uuid, freeUser);
+          //   } else {
+          //     //Envio de Email Usuario Registrado
+          //     let user = await User.findOne({ where: { id: process.UserId } });
+          //     let email = user.email;
+          //     mailer.main(email, type, process.uuid, freeUser);
+          //   }
+          // }
+          return res.status(200).send({
+            data: {
+              fileId: process.fileId,
+              apiKey
+            }
+          });
+        } catch (err) {
+          return res.status(500).send({
+            error: err
+          });
         }
-
-        // if (freeUser) {
-        //   if (email) {
-        //     //Envio de Email Usuario Casual
-        //     mailer.main(email, type, process.uuid, freeUser);
-        //   } else {
-        //     //Envio de Email Usuario Registrado
-        //     let user = await User.findOne({ where: { id: process.UserId } });
-        //     let email = user.email;
-        //     mailer.main(email, type, process.uuid, freeUser);
-        //   }
-        // }
-
-        return res.status(200).send({
-          data: {
-            fileId: process.fileId,
-            apiKey
-          }
-        });
-      } catch (err) {
-        return res.status(500).send({
-          error: err
+      } else {
+        return res.status(400).send({
+          error: "Bad Request"
         });
       }
-    } else {
-      return res.status(400).send({
-        error: "Bad Request"
-      });
+    } catch (error) {
+      console.log(error);
     }
   },
 
@@ -912,6 +970,36 @@ module.exports = {
       }
 
       return res.status(200).send({ data: "ok" });
+    } catch (error) {
+      return res.status(500).send({
+        error: error
+      });
+    }
+  },
+
+  download: async (req, res) => {
+    try {
+      const id = req.query.id;
+      if (id) {
+        const process = await Process.findByPk(id);
+
+        await Process.update(
+          {
+            downloaded: true
+          },
+          {
+            where: {
+              id: id
+            }
+          }
+        );
+
+        res.download(process.fileDownloadFolder); // Set disposition and send it.
+      } else {
+        return res.status(400).send({
+          error: "Bad Request"
+        });
+      }
     } catch (error) {
       return res.status(500).send({
         error: error

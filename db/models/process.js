@@ -21,6 +21,8 @@ module.exports = (sequelize, DataTypes) => {
       quotes: DataTypes.JSON,
       quoteSelected: DataTypes.JSON,
       fileDownload: DataTypes.JSON,
+      fileDownloadFolder: DataTypes.STRING,
+      hostClient: DataTypes.STRING,
       downloaded: DataTypes.BOOLEAN,
       removed: DataTypes.BOOLEAN
     },
