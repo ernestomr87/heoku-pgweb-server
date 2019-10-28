@@ -28,6 +28,7 @@ router.get("/api/engines", process.getExternalEngines);
 router.get("/api/engines/user", [verifyToken, isUser], process.enginesByUser);
 router.get("/api/engines/load", [verifyToken, isAdmin], process.load);
 router.post("/api/notification", process.notification);
+router.post("/api/notification/models", models.notification);
 router.delete(
   "/api/notification",
   [verifyToken, isUser],
@@ -156,6 +157,11 @@ router.get(
   models.getModels
 );
 router.post("/api/corp/models", [verifyToken, isAdmin], models.addModel);
+router.post(
+  "/api/corp/models/train",
+  [verifyToken, isAdminIsCLient],
+  models.train
+);
 router.put(
   "/api/corp/models",
   [verifyToken, isAdminIsCLient],

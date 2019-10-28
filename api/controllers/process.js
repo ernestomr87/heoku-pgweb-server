@@ -29,7 +29,11 @@ const common = require("./../../config/common");
 const apiKey = CONFIG_APP.apiKey;
 const allowedFiles = CONFIG_APP.allowedFiles;
 
-const { getStatus } = require("./../util/functions");
+const {
+  getStatus,
+  saveFile,
+  deleteFolderRecursive
+} = require("./../util/functions");
 
 const filterEngines = (engines, types) => {
   let newArrays = [];
@@ -48,22 +52,6 @@ const filterEngines = (engines, types) => {
     }
   }
   return newArrays;
-};
-
-const deleteFolderRecursive = path => {
-  if (fs.existsSync(path)) {
-    fs.readdirSync(path).forEach((file, index) => {
-      const curPath = Path.join(path, file);
-      if (fs.lstatSync(curPath).isDirectory()) {
-        // recurse
-        deleteFolderRecursive(curPath);
-      } else {
-        // delete file
-        fs.unlinkSync(curPath);
-      }
-    });
-    fs.rmdirSync(path);
-  }
 };
 
 const consultAndCreate = async (res, data) => {
@@ -170,31 +158,6 @@ const consultAndCreate = async (res, data) => {
       }
     }
   );
-};
-
-const saveFile = async (file, folderName, fileName, fileType) => {
-  try {
-    file = file.replace(`data:${fileType};base64,`, "");
-    let buff = Buffer.from(file, "base64");
-
-    return new Promise((resolve, reject) => {
-      fs.writeFile(
-        `uploads/${folderName}/${fileName}`,
-        buff,
-        { encoding: "base64" },
-        async err => {
-          if (err) {
-            return reject(err);
-          } else {
-            return resolve(true);
-          }
-        }
-      );
-    });
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
 };
 
 const downloadFile = async (fileid, apikey, filename) => {
@@ -778,7 +741,6 @@ module.exports = {
         let type = _.lowerCase(getStatus(req.body.data.status));
         type = _.replace(type, " ", "_");
         type = _.replace(type, "/", "_");
-        console.log("\x1b[33m%s\x1b[0m", "NOTIFICATION", type);
         let query = { status: type, uuid: uuidv4() };
         if (req.body.data.status === 7) {
           if (req.body.quotes.length) {
@@ -796,8 +758,7 @@ module.exports = {
           let process = await Process.findOne({
             where: { fileId: req.body.fileid }
           });
-          // let email = process.email;
-          // let freeUser = process.email ? true : false;
+
           let noty = {
             type: type,
             data: {
@@ -844,7 +805,6 @@ module.exports = {
               apikey,
               process.fileName
             );
-            console.log(response);
 
             type = _.lowerCase(getStatus(parseInt(status)));
             type = _.replace(type, " ", "_");
@@ -861,17 +821,7 @@ module.exports = {
               }
             );
           }
-          // if (freeUser) {
-          //   if (email) {
-          //     //Envio de Email Usuario Casual
-          //     mailer.main(email, type, process.uuid, freeUser);
-          //   } else {
-          //     //Envio de Email Usuario Registrado
-          //     let user = await User.findOne({ where: { id: process.UserId } });
-          //     let email = user.email;
-          //     mailer.main(email, type, process.uuid, freeUser);
-          //   }
-          // }
+
           return res.status(200).send({
             data: {
               fileId: process.fileId,
@@ -879,6 +829,9 @@ module.exports = {
             }
           });
         } catch (err) {
+          console.log("\x1b[32m", "*******************************");
+          console.log(error);
+          console.log("\x1b[32m", "*******************************");
           return res.status(500).send({
             error: err
           });
@@ -889,7 +842,9 @@ module.exports = {
         });
       }
     } catch (error) {
+      console.log("\x1b[32m", "*******************************");
       console.log(error);
+      console.log("\x1b[32m", "*******************************");
     }
   },
 

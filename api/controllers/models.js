@@ -1,6 +1,16 @@
 ("use strict");
 
+const moment = require("moment");
+
+const FormData = require("form-data");
+const fs = require("fs");
+const Path = require("path");
+const _ = require("lodash");
+const map = require("async/map");
+
 const externalApi = require("../external_api/api");
+
+const { saveFile, deleteFolderRecursive } = require("./../util/functions");
 
 module.exports = {
   getModels: async (req, res) => {
@@ -36,7 +46,8 @@ module.exports = {
         tgt: req.body.tgt,
         path: req.body.path,
         father: req.body.father,
-        olmode: req.body.olmode
+        olmode: req.body.olmode,
+        trainable: req.body.trainable
       };
 
       const response = await externalApi.addModel(data);
@@ -75,6 +86,7 @@ module.exports = {
         name: req.body.name,
         descr: req.body.descr,
         olmode: req.body.olmode,
+        trainable: req.body.trainable,
         father: req.body.father,
         client_id: req.user.rol === "admin" ? 0 : req.user.id
       };
@@ -85,6 +97,101 @@ module.exports = {
       } = response;
 
       return res.status(200).send({ modelid, engineid });
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
+  },
+  train: async (req, res) => {
+    try {
+      const files = req.body.files;
+      const model = req.body.model;
+      const src = req.body.src;
+      const tgt = req.body.tgt;
+      const apikey = req.user.apikey;
+      const username = req.user.email;
+
+      const folderName = moment().valueOf();
+      const pathFolder = Path.resolve(
+        __dirname,
+        `./../../uploads/${folderName}/`
+      );
+
+      map(
+        files,
+        async item => {
+          const fileName = item.fileName;
+          const fileType = item.fileType;
+          const file = item.file;
+
+          fs.mkdirSync(pathFolder);
+          const path = Path.resolve(
+            __dirname,
+            `./../../uploads/${folderName}/`,
+            fileName
+          );
+
+          const save = await saveFile(file, folderName, fileName, fileType);
+
+          if (save) {
+            let form = new FormData();
+
+            form.append("file", fs.createReadStream(path));
+            form.append("title", fileName);
+            form.append("engine", 0);
+            form.append("model", model);
+            form.append("apikey", apikey);
+            form.append("processname", "train");
+            form.append("username", username);
+            form.append("modestatus", 4);
+
+            form.append("src", src);
+            form.append("tgt", tgt);
+
+            form.append(
+              "notiflink",
+              "http://pgweb.pangeamt.com:3004/api/notification/models"
+            );
+
+            let body = await externalApi.sendfile(form);
+
+            const fileId = body.data.fileId;
+            if (fileId && req.userId) {
+              return true;
+            } else {
+              throw new Error(errorMessage);
+            }
+          } else {
+            throw new Error("Error to save file");
+          }
+        },
+        err => {
+          deleteFolderRecursive(pathFolder);
+          if (err) {
+            return res.status(500).send({
+              error: err
+            });
+          } else {
+            return res.status(200).json({
+              data: "ok"
+            });
+          }
+        }
+      );
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
+  },
+  notification: async (req, res) => {
+    try {
+      console.log("\x1b[33m%s\x1b[0m", "***************MODELS****************");
+      console.log("\x1b[33m%s\x1b[0m", JSON.stringify(req.body));
+      console.log("\x1b[33m%s\x1b[0m", "*************************************");
+
+      return res.status(200).send();
     } catch (err) {
       res.status(500).json({
         error: err
