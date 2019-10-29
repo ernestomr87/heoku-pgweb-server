@@ -830,7 +830,7 @@ module.exports = {
           });
         } catch (err) {
           console.log("\x1b[32m", "*******************************");
-          console.log(error);
+          console.log(err.message);
           console.log("\x1b[32m", "*******************************");
           return res.status(500).send({
             error: err
@@ -841,9 +841,9 @@ module.exports = {
           error: "Bad Request"
         });
       }
-    } catch (error) {
+    } catch (err) {
       console.log("\x1b[32m", "*******************************");
-      console.log(error);
+      console.log(err.message);
       console.log("\x1b[32m", "*******************************");
     }
   },

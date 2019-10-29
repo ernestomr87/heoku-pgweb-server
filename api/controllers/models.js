@@ -1,7 +1,9 @@
 ("use strict");
+const db = require("./../../db/models");
+const Training = db.Training;
+const User = db.User;
 
 const moment = require("moment");
-
 const FormData = require("form-data");
 const fs = require("fs");
 const Path = require("path");
@@ -125,6 +127,15 @@ module.exports = {
           const fileType = item.fileType;
           const file = item.file;
 
+          const training = await Training.create({
+            title: fileName,
+            model: model,
+            apikey: apikey,
+            src: src,
+            tgt: tgt,
+            status: "*" //solicitado
+          });
+
           fs.mkdirSync(pathFolder);
           const path = Path.resolve(
             __dirname,
@@ -158,6 +169,23 @@ module.exports = {
 
             const fileId = body.data.fileId;
             if (fileId && req.userId) {
+              const user = await User.findOne({
+                where: {
+                  id: req.userId
+                }
+              });
+
+              await Training.update(
+                {
+                  fileId
+                },
+                {
+                  where: {
+                    id: training.id
+                  }
+                }
+              );
+              user.addTraining(training);
               return true;
             } else {
               throw new Error(errorMessage);
@@ -191,7 +219,35 @@ module.exports = {
       console.log("\x1b[33m%s\x1b[0m", JSON.stringify(req.body));
       console.log("\x1b[33m%s\x1b[0m", "*************************************");
 
-      return res.status(200).send();
+      let fileId = req.body.fileid;
+      let apikey = req.body.data.apikey;
+      let status = req.body.data.status;
+
+      if (fileId && apikey && status) {
+        await Training.update(
+          {
+            status
+          },
+          {
+            where: {
+              fileId,
+              apikey
+            }
+          }
+        );
+        return res.status(200).send({
+          data: {
+            fileId,
+            apiKey
+          }
+        });
+      } else {
+        return res.status(400).send({
+          error: "Bad Request"
+        });
+      }
+
+      // return res.status(200).send();
     } catch (err) {
       res.status(500).json({
         error: err

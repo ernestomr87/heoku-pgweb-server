@@ -14,6 +14,9 @@ const verifyToken = async (req, res, next) => {
 
   jwt.verify(token, config.secret, (err, decoded) => {
     if (err) {
+      console.log("\x1b[32m", "*******************************");
+      console.log(err.message);
+      console.log("\x1b[32m", "*******************************");
       return res.status(500).send({
         auth: false,
         message: "Fail to Authentication. Error -> " + err
