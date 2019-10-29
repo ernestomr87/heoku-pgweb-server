@@ -39,6 +39,34 @@ module.exports = {
       });
     }
   },
+  getTrainings: async (req, res) => {
+    try {
+      let trainings = [];
+      const model = req.query.model;
+      if (model && req.user && req.user.rol === "admin") {
+        trainings = await Training.findAll({
+          where: {
+            model
+          }
+        });
+      } else if (model && req.user && req.user.rol === "client") {
+        trainings = await Training.findAll({
+          where: {
+            model,
+            UserId: req.user.id
+          }
+        });
+      }
+
+      return res.status(200).send({
+        trainings
+      });
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
+  },
   addModel: async (req, res) => {
     try {
       const data = {

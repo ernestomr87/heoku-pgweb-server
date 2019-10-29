@@ -156,6 +156,11 @@ router.get(
   [verifyToken, isAdminIsCLient],
   models.getModels
 );
+router.get(
+  "/api/corp/models/trainings",
+  [verifyToken, isAdminIsCLient],
+  models.getTrainings
+);
 router.post("/api/corp/models", [verifyToken, isAdmin], models.addModel);
 router.post(
   "/api/corp/models/train",
