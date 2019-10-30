@@ -6,6 +6,8 @@ const Notification = db.Notification;
 const TypeOfPermits = db.TypeOfPermits;
 const BillingInformation = db.BillingInformation;
 
+const externalApi = require("../external_api/api");
+
 var jwt = require("jsonwebtoken");
 var randtoken = require("rand-token");
 var bcrypt = require("bcryptjs");
@@ -27,11 +29,18 @@ exports.signup = async (req, res) => {
     const user = await User.create(query);
 
     if (req.body.clientId) {
-      const client = await User.findByPk(req.body.client_id);
+      const client = await User.findByPk(req.body.clientId);
       if (client.id) {
-        let users = client.Users;
+        let users = await client.getUsers();
         users.push(user);
         await client.setUsers(users);
+
+        const data = {
+          id: user.id,
+          APIKey: user.apikey,
+          client_id: client.id
+        };
+        await externalApi.addUser(data);
       }
     }
 
