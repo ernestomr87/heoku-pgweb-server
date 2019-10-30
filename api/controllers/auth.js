@@ -7,26 +7,38 @@ const TypeOfPermits = db.TypeOfPermits;
 const BillingInformation = db.BillingInformation;
 
 var jwt = require("jsonwebtoken");
-var randtoken = require('rand-token') 
+var randtoken = require("rand-token");
 var bcrypt = require("bcryptjs");
 
 var refreshTokens = {};
 
-exports.signup = (req, res) => {
-  // Save User to Database
-  User.create({
-    fullName: req.body.fullName,
-    email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, 8),
-    rol: "user",
-    apikey: uuidv4()
-  })
-    .then(() => {
-      res.send("User registered successfully!");
-    })
-    .catch(err => {
-      res.status(500).send("Fail! Error -> " + err);
-    });
+exports.signup = async (req, res) => {
+  try {
+    const query = {
+      fullName: req.body.fullName,
+      email: req.body.email,
+      password: bcrypt.hashSync(req.body.password, 8),
+      rol: "user",
+      apikey: uuidv4()
+    };
+
+    // Save User to Database
+
+    const user = await User.create(query);
+
+    if (req.body.clientId) {
+      const client = await User.findByPk(req.body.client_id);
+      if (client.id) {
+        let users = client.Users;
+        users.push(user);
+        await client.setUsers(users);
+      }
+    }
+
+    res.status(200).send({ userId: user.id });
+  } catch (error) {
+    res.status(500).send("Fail! Error -> " + error);
+  }
 };
 
 exports.signin = async (req, res) => {
