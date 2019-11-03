@@ -187,6 +187,116 @@ const downloadFile = async (fileid, apikey, filename) => {
   });
 };
 
+const formatStatDataSource = data => {
+  let array = [];
+  const datas = Object.keys(data);
+  for (let i = 0; i < datas.length; i++) {
+    for (let j = 0; j < data[datas[i]].length; j++) {
+      let aux = data[datas[i]][j];
+      let key = Object.keys(aux)[0];
+      if (array.length) {
+        let flag = false;
+        array.map(item => {
+          let akey = Object.keys(item)[0];
+          if (akey === key) {
+            flag = true;
+            item[akey].c = item[akey].c + aux[key].c;
+            item[akey].s = item[akey].c + aux[key].s;
+            item[akey].w = item[akey].c + aux[key].w;
+          }
+        });
+        if (!flag) {
+          let a = {};
+          a[key] = aux[key];
+          array.push(a);
+        }
+      } else {
+        let a = {};
+        a[key] = aux[key];
+        array.push(a);
+      }
+    }
+  }
+
+  let narray = [];
+  let total = {
+    id: `stTotal`,
+    time: 'Total',
+    characters: 0,
+    words: 0,
+    segments: 0,
+  };
+  array.map((item, index) => {
+    let aux = {
+      id: `st${index}`,
+      time: Object.keys(item)[0],
+      characters: item[Object.keys(item)[0]].c,
+      words: item[Object.keys(item)[0]].w,
+      segments: item[Object.keys(item)[0]].s,
+    };
+    total.characters += item[Object.keys(item)[0]].c;
+    total.words += item[Object.keys(item)[0]].w;
+    total.segments += item[Object.keys(item)[0]].s;
+    narray.push(aux);
+  });
+  narray.push(total);
+
+  return narray;
+};
+const formatFileDataSource = data => {
+  let array = [];
+  const datas = Object.keys(data);
+  for (let i = 0; i < datas.length; i++) {
+    for (let j = 0; j < data[datas[i]].length; j++) {
+      let aux = data[datas[i]][j];
+      let key = Object.keys(aux)[0];
+      if (array.length) {
+        let flag = false;
+        array.map(item => {
+          let akey = Object.keys(item)[0];
+          if (akey === key) {
+            flag = true;
+            item[akey].c = item[akey].c + aux[key].c;
+            item[akey].s = item[akey].c + aux[key].s;
+            item[akey].w = item[akey].c + aux[key].w;
+          }
+        });
+        if (!flag) {
+          let a = {};
+          a[key] = aux[key];
+          array.push(a);
+        }
+      } else {
+        let a = {};
+        a[key] = aux[key];
+        array.push(a);
+      }
+    }
+  }
+
+  let narray = [];
+  let total = {
+    id: `statsTotal`,
+    time: 'Total',
+    files: 0,
+    pages: 0,
+  };
+  array.map((item, index) => {
+    let aux = {
+      id: `stats${index}`,
+      time: Object.keys(item)[0],
+      files: item[Object.keys(item)[0]].files,
+      pages: item[Object.keys(item)[0]].pages,
+    };
+    total.files += item[Object.keys(item)[0]].files;
+    total.pages += item[Object.keys(item)[0]].pages;
+    narray.push(aux);
+  });
+  narray.push(total);
+  // setDataSourceFile(narray);
+  return narray;
+};
+
 module.exports = {
   getProcess: async (req, res) => {
     // console.log(
@@ -1026,8 +1136,38 @@ module.exports = {
         data: { Stats, FileStats }
       } = response;
 
+      const apikeysStats = Object.keys(Stats);
+      const query = apikeysStats.map(item => {
+        return { apikey: item };
+      });
+      // const apikeysFileStats = Object.keys(FileStats);
+      const users = await User.findAll({
+        where: {
+          [Op.or]: query
+        }
+      });
+
+      const array = [];
+      users.map(item => {
+        let a = {};
+        a[item.apikey] = Stats[item.apikey];
+        let b = {};
+        b[item.apikey] = FileStats[item.apikey];
+        let aux = {
+          id: item.id,
+          email: item.email,
+          stats: a,
+          datasourceA: formatStatDataSource(a),
+          fileStats: b,
+          datasourceB: formatFileDataSource(b),
+        };
+        array.push(aux);
+      });
+
       if (Stats) {
-        return res.status(200).send({ Stats, FileStats, user: userData });
+        return res
+          .status(200)
+          .send({ Stats, FileStats, user: userData, users: array });
       } else {
         res.status(500).json({
           error: { message: "Bad Request" }
