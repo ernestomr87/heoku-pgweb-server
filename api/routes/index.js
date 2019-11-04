@@ -25,7 +25,7 @@ const router = express.Router();
 
 // EXTERNAL PANGEAMT
 router.get("/api/engines", process.getExternalEngines);
-router.get("/api/engines/user", [verifyToken, isUser], process.enginesByUser);
+router.get("/api/engines/user", [verifyToken], process.enginesByUser);
 router.get("/api/engines/load", [verifyToken, isAdmin], process.load);
 router.post("/api/notification", process.notification);
 router.post("/api/notification/models", models.notification);

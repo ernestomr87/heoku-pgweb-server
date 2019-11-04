@@ -221,23 +221,15 @@ const formatStatDataSource = data => {
   let narray = [];
   let total = {
     id: `stTotal`,
-    time: 'Total',
+    time: "Total",
     characters: 0,
     words: 0,
-    segments: 0,
+    segments: 0
   };
-  array.map((item, index) => {
-    let aux = {
-      id: `st${index}`,
-      time: Object.keys(item)[0],
-      characters: item[Object.keys(item)[0]].c,
-      words: item[Object.keys(item)[0]].w,
-      segments: item[Object.keys(item)[0]].s,
-    };
+  array.map(item => {
     total.characters += item[Object.keys(item)[0]].c;
     total.words += item[Object.keys(item)[0]].w;
     total.segments += item[Object.keys(item)[0]].s;
-    narray.push(aux);
   });
   narray.push(total);
 
@@ -277,20 +269,13 @@ const formatFileDataSource = data => {
   let narray = [];
   let total = {
     id: `statsTotal`,
-    time: 'Total',
+    time: "Total",
     files: 0,
-    pages: 0,
+    pages: 0
   };
-  array.map((item, index) => {
-    let aux = {
-      id: `stats${index}`,
-      time: Object.keys(item)[0],
-      files: item[Object.keys(item)[0]].files,
-      pages: item[Object.keys(item)[0]].pages,
-    };
+  array.map(item => {
     total.files += item[Object.keys(item)[0]].files;
     total.pages += item[Object.keys(item)[0]].pages;
-    narray.push(aux);
   });
   narray.push(total);
   // setDataSourceFile(narray);
@@ -508,6 +493,48 @@ module.exports = {
                 name: "translation",
                 updatedAt: new Date(),
                 engines: user_engines.map(item => {
+                  item.source = item.src;
+                  item.target = item.tgt;
+                  item.name = item.descr;
+                  delete item.src;
+                  delete item.tgt;
+                  delete item.descr;
+                  return item;
+                })
+              }
+            ]
+          };
+
+          return res.status(200).send({ ...data });
+        }
+      } else if (user.rol === "client") {
+        const response = await externalApi.enginesByClient({ client_id: id });
+        const {
+          data: { client_engines }
+        } = response;
+
+        if (!client_engines) {
+          let data = {
+            allowedFiles,
+            process: [
+              {
+                id: 1,
+                name: "translation",
+                updatedAt: new Date(),
+                engines: []
+              }
+            ]
+          };
+          return res.status(200).send({ ...data });
+        } else {
+          let data = {
+            allowedFiles,
+            process: [
+              {
+                id: 1,
+                name: "translation",
+                updatedAt: new Date(),
+                engines: client_engines.map(item => {
                   item.source = item.src;
                   item.target = item.tgt;
                   item.name = item.descr;
@@ -1147,27 +1174,45 @@ module.exports = {
         }
       });
 
-      const array = [];
+      const total = [];
+      let tt = {
+        user: "Total",
+        characters: 0,
+        segments: 0,
+        words: 0,
+        pages: 0,
+        files: 0
+      };
+
       users.map(item => {
         let a = {};
         a[item.apikey] = Stats[item.apikey];
         let b = {};
         b[item.apikey] = FileStats[item.apikey];
-        let aux = {
-          id: item.id,
-          email: item.email,
-          stats: a,
-          datasourceA: formatStatDataSource(a),
-          fileStats: b,
-          datasourceB: formatFileDataSource(b),
-        };
-        array.push(aux);
-      });
+        const datasourceA = formatStatDataSource(a);
+        const datasourceB = formatFileDataSource(b);
 
+        let tmp = {
+          user: `${item.email} / ${item.apikey}`,
+          characters: datasourceA[0].characters,
+          segments: datasourceA[0].segments,
+          words: datasourceA[0].words,
+          pages: datasourceB[0].pages,
+          files: datasourceB[0].files
+        };
+        tt.characters = tt.characters + datasourceA[0].characters;
+        tt.segments = tt.segments + datasourceA[0].segments;
+        tt.words = tt.words + datasourceA[0].words;
+        tt.pages = tt.pages + datasourceB[0].pages;
+        tt.files = tt.files + datasourceB[0].files;
+
+        total.push(tmp);
+      });
+      total.push(tt);
       if (Stats) {
         return res
           .status(200)
-          .send({ Stats, FileStats, user: userData, users: array });
+          .send({ Stats, FileStats, user: userData, users: total });
       } else {
         res.status(500).json({
           error: { message: "Bad Request" }
