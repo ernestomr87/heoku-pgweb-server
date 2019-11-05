@@ -31,6 +31,8 @@ exports.signup = async (req, res) => {
     if (req.body.clientId) {
       const client = await User.findByPk(req.body.clientId);
       if (client.id) {
+        user.setTypeOfPermit(client.TypeOfPermitId);
+
         let users = await client.getUsers();
         users.push(user);
         await client.setUsers(users);
