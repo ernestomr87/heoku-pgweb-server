@@ -1142,7 +1142,11 @@ module.exports = {
         end = moment(req.body.to_date).format("YYYY.MM.DD");
       }
       let data;
-      if (req.body.userId === null && req.body.apikey === null) {
+      if (
+        req.body.userId === null &&
+        req.body.apikey === null &&
+        req.user.rol === "admin"
+      ) {
         data = {
           period: req.body.period,
           from_date: start,
