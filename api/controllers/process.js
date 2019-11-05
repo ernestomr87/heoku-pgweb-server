@@ -239,29 +239,31 @@ const formatFileDataSource = data => {
   let array = [];
   const datas = Object.keys(data);
   for (let i = 0; i < datas.length; i++) {
-    for (let j = 0; j < data[datas[i]].length; j++) {
-      let aux = data[datas[i]][j];
-      let key = Object.keys(aux)[0];
-      if (array.length) {
-        let flag = false;
-        array.map(item => {
-          let akey = Object.keys(item)[0];
-          if (akey === key) {
-            flag = true;
-            item[akey].c = item[akey].c + aux[key].c;
-            item[akey].s = item[akey].c + aux[key].s;
-            item[akey].w = item[akey].c + aux[key].w;
+    if (data[datas[i]].length) {
+      for (let j = 0; j < data[datas[i]].length; j++) {
+        let aux = data[datas[i]][j];
+        let key = Object.keys(aux)[0];
+        if (array.length) {
+          let flag = false;
+          array.map(item => {
+            let akey = Object.keys(item)[0];
+            if (akey === key) {
+              flag = true;
+              item[akey].c = item[akey].c + aux[key].c;
+              item[akey].s = item[akey].c + aux[key].s;
+              item[akey].w = item[akey].c + aux[key].w;
+            }
+          });
+          if (!flag) {
+            let a = {};
+            a[key] = aux[key];
+            array.push(a);
           }
-        });
-        if (!flag) {
+        } else {
           let a = {};
           a[key] = aux[key];
           array.push(a);
         }
-      } else {
-        let a = {};
-        a[key] = aux[key];
-        array.push(a);
       }
     }
   }
@@ -1139,25 +1141,32 @@ module.exports = {
         start = moment(req.body.from_date).format("YYYY.MM.DD");
         end = moment(req.body.to_date).format("YYYY.MM.DD");
       }
-      const data = {
-        userId: req.body.userId || req.userId,
-        period: req.body.period,
-        apikey: req.body.apikey,
-        from_date: start,
-        to_date: end
-      };
-
-      if (!data.apikey) {
-        const user = await User.findByPk(data.userId);
-        userData = {
-          email: user.email,
-          fullName: user.fullName,
-          rol: user.rol
+      let data;
+      if (req.body.userId === null && req.body.apikey === null) {
+        data = {
+          period: req.body.period,
+          from_date: start,
+          to_date: end
         };
-        data.apikey = user.apikey;
+      } else {
+        data = {
+          userId: req.body.userId || req.userId,
+          apikey: req.body.apikey,
+          period: req.body.period,
+          from_date: start,
+          to_date: end
+        };
+        if (!data.apikey) {
+          const user = await User.findByPk(data.userId);
+          userData = {
+            email: user.email,
+            fullName: user.fullName,
+            rol: user.rol
+          };
+          data.apikey = user.apikey;
+        }
       }
 
-      //2019.09.13
       const response = await externalApi.getstats(data);
       const {
         data: { Stats, FileStats }
@@ -1186,9 +1195,9 @@ module.exports = {
 
       users.map(item => {
         let a = {};
-        a[item.apikey] = Stats[item.apikey];
+        a[item.apikey] = Stats[item.apikey] ? Stats[item.apikey] : [];
         let b = {};
-        b[item.apikey] = FileStats[item.apikey];
+        b[item.apikey] = FileStats[item.apikey] ? FileStats[item.apikey] : [];
         const datasourceA = formatStatDataSource(a);
         const datasourceB = formatFileDataSource(b);
 
