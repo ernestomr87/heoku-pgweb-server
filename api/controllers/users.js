@@ -152,10 +152,11 @@ exports.create = async (req, res) => {
     });
 
     user.setTypeOfPermit(typeOfPermits);
-    if (req.userRol === "client") {
+    if (req.userRol === "client" || req.body.client) {
+      let c = req.body.client || req.userId;
       let client = await User.findOne({
         where: {
-          id: req.userId
+          id: c
         },
         include: [
           {
