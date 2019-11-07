@@ -33,14 +33,14 @@ const getStatus = status => {
 
 const saveFile = async (file, folderName, fileName, fileType) => {
   try {
-    file = file.replace(`data:${fileType};base64,`, "");
-    let buff = Buffer.from(file, "base64");
+    let ff = file.split(";base64,").pop();
+    let buff = Buffer.from(ff, "base64");
 
     return new Promise((resolve, reject) => {
       fs.writeFile(
         `uploads/${folderName}/${fileName}`,
         buff,
-        { encoding: "base64" },
+        "base64",
         async err => {
           if (err) {
             return reject(err);
