@@ -247,14 +247,23 @@ module.exports = {
       console.log("\x1b[33m%s\x1b[0m", JSON.stringify(req.body));
       console.log("\x1b[33m%s\x1b[0m", "*************************************");
 
+      // {"training":{"msg":"Training finished","result":"OK","alignations trained":6},"fileid":"1323eb51a671457abf7b43e26f436e6f","data":{"message":"Training Finished","apikey":"d1d0a149-35c9-4276-af75-4457da20d96a","status":2}}
+
       let fileId = req.body.fileid;
       let apikey = req.body.data.apikey;
       let status = req.body.data.status;
 
+      let msg = req.body.training.msg || null;
+      let result = req.body.training.result || null;
+      let alignationsTrained = req.body.training["alignations trained"] || null;
+
       if (fileId && apikey && status) {
         await Training.update(
           {
-            status
+            status,
+            msg,
+            result,
+            alignationsTrained
           },
           {
             where: {
