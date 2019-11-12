@@ -249,29 +249,27 @@ module.exports = {
 
       // {"training":{"msg":"Training finished","result":"OK","alignations trained":6},"fileid":"1323eb51a671457abf7b43e26f436e6f","data":{"message":"Training Finished","apikey":"d1d0a149-35c9-4276-af75-4457da20d96a","status":2}}
 
+      const query = {};
       let fileId = req.body.fileid;
       let apikey = req.body.data.apikey;
+
       let status = req.body.data.status;
 
-      let msg = req.body.training.msg || null;
-      let result = req.body.training.result || null;
-      let alignationsTrained = req.body.training["alignations trained"] || null;
+      if (req.body.status) query["status"] = status;
+
+      if (req.body.training.msg) query["msg"] = req.body.training.msg;
+
+      if (req.body.training.result) query["result"] = req.body.training.result;
+      if (req.body.training["alignations trained"])
+        query["alignationsTrained"] = req.body.training["alignations trained"];
 
       if (fileId && apikey && status) {
-        await Training.update(
-          {
-            status,
-            msg,
-            result,
-            alignationsTrained
-          },
-          {
-            where: {
-              fileId,
-              apikey
-            }
+        await Training.update(query, {
+          where: {
+            fileId,
+            apikey
           }
-        );
+        });
         return res.status(200).send({
           data: {
             fileId,
