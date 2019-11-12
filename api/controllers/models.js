@@ -284,6 +284,7 @@ module.exports = {
 
       // return res.status(200).send();
     } catch (err) {
+      console.log(err.message, "background: #222; color: #bada55");
       res.status(500).json({
         error: err
       });
