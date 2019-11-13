@@ -243,23 +243,25 @@ module.exports = {
   },
   notification: async (req, res) => {
     try {
+      console.log("\n");
       console.log("\x1b[33m%s\x1b[0m", "***************MODELS****************");
       console.log("\x1b[33m%s\x1b[0m", JSON.stringify(req.body));
       console.log("\x1b[33m%s\x1b[0m", "*************************************");
-
-      // {"training":{"msg":"Training finished","result":"OK","alignations trained":6},"fileid":"1323eb51a671457abf7b43e26f436e6f","data":{"message":"Training Finished","apikey":"d1d0a149-35c9-4276-af75-4457da20d96a","status":2}}
-
+      console.log("\n");
       const query = {};
-      let fileId = req.body.fileid;
-      let apikey = req.body.data.apikey;
 
-      let status = req.body.data.status;
+      const {
+        fileid: fileId,
+        data: { apikey, status },
+        training: { msg, result }
+      } = req.body;
 
-      if (req.body.status) query["status"] = status;
+      if (status) query["status"] = status;
 
-      if (req.body.training.msg) query["msg"] = req.body.training.msg;
+      if (msg) query["msg"] = msg;
 
-      if (req.body.training.result) query["result"] = req.body.training.result;
+      if (result) query["result"] = result;
+
       if (req.body.training["alignations trained"])
         query["alignationsTrained"] = req.body.training["alignations trained"];
 
@@ -273,7 +275,7 @@ module.exports = {
         return res.status(200).send({
           data: {
             fileId,
-            apiKey
+            apikey
           }
         });
       } else {
@@ -284,7 +286,12 @@ module.exports = {
 
       // return res.status(200).send();
     } catch (err) {
-      console.log(err.message, "background: #222; color: #bada55");
+      console.log("\n");
+      console.log("\x1b[31m%s\x1b[0m", "***************MODELS****************");
+      console.log("\x1b[31m%s\x1b[0m", err.message);
+      console.log("\x1b[31m%s\x1b[0m", "*************************************");
+      console.log("\n");
+
       res.status(500).json({
         error: err
       });
