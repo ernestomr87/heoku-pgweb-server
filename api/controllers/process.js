@@ -183,7 +183,7 @@ const downloadFile = async (fileid, apikey) => {
 
   return new Promise((resolve, reject) => {
     writer.on("finish", () => {
-      return resolve(path);
+      return resolve({ path, filename });
     });
     writer.on("error", error => {
       return reject(error);
@@ -318,6 +318,7 @@ module.exports = {
           "status",
           "quotes",
           "fileDownload",
+          "fileDownloadName",
           "quoteSelected",
           "downloaded"
         ],
@@ -870,7 +871,10 @@ module.exports = {
         data: "ok"
       });
     } catch (error) {
-      console.log("\x1b[32m", "**************processFileAfterQuoteFile*****************");
+      console.log(
+        "\x1b[32m",
+        "**************processFileAfterQuoteFile*****************"
+      );
       console.log(error.message);
       console.log("\x1b[32m", "*******************************");
       return res.status(500).send({
@@ -964,7 +968,8 @@ module.exports = {
             await Process.update(
               {
                 status: type,
-                fileDownloadFolder: response
+                fileDownloadFolder: response.path
+                fileDownloadName: response.filename
               },
               {
                 where: {
