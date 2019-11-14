@@ -160,14 +160,18 @@ const consultAndCreate = async (res, data) => {
   );
 };
 
-const downloadFile = async (fileid, apikey, filename) => {
+const downloadFile = async (fileid, apikey) => {
   const response = await externalApi.downloadfile(fileid, apikey);
   const folderName = moment().valueOf();
+  let filename = response.headers["content-disposition"];
+  filename = filename
+    .split('="')[1]
+    .substring(0, filename.split('="')[1].length - 1);
 
   const path = Path.resolve(
     __dirname,
     `./../../downloads/${folderName}/`,
-    `${folderName}.docx`
+    filename
   );
   const pathFolder = Path.resolve(
     __dirname,
