@@ -704,6 +704,9 @@ module.exports = {
         }
       );
     } catch (error) {
+      console.log("\x1b[32m", "**************processFile*****************");
+      console.log(error.message);
+      console.log("\x1b[32m", "*******************************");
       return res.status(400).send({
         error: error
       });
@@ -831,6 +834,9 @@ module.exports = {
         }
       );
     } catch (error) {
+      console.log("\x1b[32m", "**************quoteFile*****************");
+      console.log(error.message);
+      console.log("\x1b[32m", "*******************************");
       return res.status(400).send({
         error: error
       });
@@ -864,6 +870,9 @@ module.exports = {
         data: "ok"
       });
     } catch (error) {
+      console.log("\x1b[32m", "**************processFileAfterQuoteFile*****************");
+      console.log(error.message);
+      console.log("\x1b[32m", "*******************************");
       return res.status(500).send({
         error: error
       });
