@@ -167,7 +167,7 @@ const downloadFile = async (fileid, apikey, filename) => {
   const path = Path.resolve(
     __dirname,
     `./../../downloads/${folderName}/`,
-    filename
+    `${folderName}.docx`
   );
   const pathFolder = Path.resolve(
     __dirname,
