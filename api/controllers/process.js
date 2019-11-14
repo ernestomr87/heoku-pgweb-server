@@ -968,7 +968,7 @@ module.exports = {
             await Process.update(
               {
                 status: type,
-                fileDownloadFolder: response.path
+                fileDownloadFolder: response.path,
                 fileDownloadName: response.filename
               },
               {
