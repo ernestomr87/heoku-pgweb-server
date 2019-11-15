@@ -43,6 +43,9 @@ exports.listAll = async (req, res) => {
     if (req.userRol === "client") {
       query.where.userId = req.userId;
     }
+    if (req.userRol === "admin") {
+      delete query.where.id;
+    }
     const users = await User.findAll(query);
 
     map(

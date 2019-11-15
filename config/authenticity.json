@@ -22,6 +22,6 @@
       "pass": "santac1ara"
     }
   },
-  "allowedFiles": "docx|xlsx|pptx|pdf|odt|odp",
+  "allowedFiles": "txt|docx|xlsx|pptx|pdf|odt|odp",
   "secret": "pangeamt-super-secret-key"
 }
