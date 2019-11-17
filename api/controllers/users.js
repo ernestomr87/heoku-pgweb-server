@@ -25,7 +25,8 @@ exports.listAll = async (req, res) => {
         "apikey",
         "rol",
         "typeOfUser",
-        "UserId"
+        "UserId",
+        "lastLogin"
       ],
       include: [
         {

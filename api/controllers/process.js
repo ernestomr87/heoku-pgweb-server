@@ -557,7 +557,47 @@ module.exports = {
           return res.status(200).send({ ...data });
         }
       } else {
-        return res.status(403).send("Permissions Required!");
+        const response = await externalApi.getEngines();
+        const {
+          data: { engines }
+        } = response;
+
+        if (!engines) {
+          let data = {
+            allowedFiles,
+            process: [
+              {
+                id: 1,
+                name: "translation",
+                updatedAt: new Date(),
+                engines: []
+              }
+            ]
+          };
+          return res.status(200).send({ ...data });
+        } else {
+          let data = {
+            allowedFiles,
+            process: [
+              {
+                id: 1,
+                name: "translation",
+                updatedAt: new Date(),
+                engines: engines.map(item => {
+                  item.source = item.src;
+                  item.target = item.tgt;
+                  item.name = item.descr;
+                  delete item.src;
+                  delete item.tgt;
+                  delete item.descr;
+                  return item;
+                })
+              }
+            ]
+          };
+
+          return res.status(200).send({ ...data });
+        }
       }
     } catch (err) {
       res.status(500).json({
@@ -725,7 +765,7 @@ module.exports = {
       const engineSource = req.body.engine.source;
       const engineTarget = req.body.engine.target;
       const files = req.body.files;
-      const apikey = req.user.apikey;
+      const apikey = req.user.rol !== "admin" ? req.user.apikey : "000000";
 
       const folderName = moment().valueOf();
       const pathFolder = Path.resolve(
@@ -767,6 +807,9 @@ module.exports = {
           if (save) {
             let form = new FormData();
 
+            let modestatus = req.user.typeOfUser === 1 ? 10 : 5;
+            if (req.user.rol === "admin") modestatus = 10;
+
             form.append("file", fs.createReadStream(path));
             form.append("title", fileName);
             form.append("engine", engineId);
@@ -775,7 +818,7 @@ module.exports = {
             form.append("apikey", apikey);
             form.append("processname", "PGWEB");
             form.append("username", username);
-            form.append("modestatus", req.user.typeOfUser === 1 ? 10 : 5);
+            form.append("modestatus", modestatus);
             form.append(
               "notiflink",
               "http://pgweb.pangeamt.com:3004/api/notification"
@@ -1191,7 +1234,7 @@ module.exports = {
 
       const response = await externalApi.getstats(data);
       const {
-        data: { Stats, FileStats }
+        data: { Stats, FileStats, FileList }
       } = response;
 
       const apikeysStats = Object.keys(Stats);
@@ -1225,21 +1268,24 @@ module.exports = {
 
         let tmp = {
           user: `${item.email} / ${item.apikey}`,
+          email: item.email,
+          apikey: item.apikey,
           characters: datasourceA[0].characters,
           segments: datasourceA[0].segments,
           words: datasourceA[0].words,
           pages: datasourceB[0].pages,
-          files: datasourceB[0].files
+          files: datasourceB[0].files,
+          fileList: FileList[item.apikey]
         };
-        tt.characters = tt.characters + datasourceA[0].characters;
-        tt.segments = tt.segments + datasourceA[0].segments;
-        tt.words = tt.words + datasourceA[0].words;
-        tt.pages = tt.pages + datasourceB[0].pages;
-        tt.files = tt.files + datasourceB[0].files;
+        // tt.characters = tt.characters + datasourceA[0].characters;
+        // tt.segments = tt.segments + datasourceA[0].segments;
+        // tt.words = tt.words + datasourceA[0].words;
+        // tt.pages = tt.pages + datasourceB[0].pages;
+        // tt.files = tt.files + datasourceB[0].files;
 
         total.push(tmp);
       });
-      total.push(tt);
+      // total.push(tt);
       if (Stats) {
         return res
           .status(200)

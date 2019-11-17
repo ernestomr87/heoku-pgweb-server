@@ -286,11 +286,10 @@ module.exports = {
       data: { ...data }
     });
   },
-  enginesByUser: data => {
+  enginesByAdmin: () => {
     return axios({
       method: "post",
-      url: `${API_ENGINE_NEX_RELAY}corp/userengines`,
-      data: { ...data }
+      url: `${API_ENGINE_NEX_RELAY}corp/engines`
     });
   },
   enginesByUser: data => {

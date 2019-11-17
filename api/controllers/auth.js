@@ -104,6 +104,17 @@ exports.signin = async (req, res) => {
       }
     }
 
+    await User.update(
+      {
+        lastLogin: new Date()
+      },
+      {
+        where: {
+          id: user.id
+        }
+      }
+    );
+
     res.status(200).send({
       auth: true,
       accessToken: token,

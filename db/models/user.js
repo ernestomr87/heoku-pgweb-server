@@ -8,6 +8,7 @@ module.exports = (sequelize, DataTypes) => {
       email: DataTypes.STRING,
       apikey: DataTypes.STRING,
       rol: DataTypes.STRING,
+      lastLogin: DataTypes.DATE,
       remove: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
