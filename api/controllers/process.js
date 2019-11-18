@@ -756,6 +756,9 @@ module.exports = {
 
   quoteFile: async (req, res) => {
     try {
+      console.log("\x1b[32m", "**************quoteFile*****************");
+      console.log(JSON.stringify(req.body));
+      console.log("\x1b[32m", "*******************************");
       const username = req.userEmail;
       const processId = req.body.process.id;
       const processName = req.body.process.name;
