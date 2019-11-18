@@ -755,11 +755,15 @@ module.exports = {
   },
 
   quoteFile: async (req, res) => {
+    let transaction;
     try {
+      transaction = await db.sequelize.transaction();
+
       console.log("\x1b[32m", "**************quoteFile*****************");
       console.log(JSON.stringify(req.body.process));
       console.log(JSON.stringify(req.body.engine));
       console.log("\x1b[32m", "*******************************");
+
       const username = req.userEmail;
       const processId = req.body.process.id;
       const processName = req.body.process.name;
@@ -784,20 +788,23 @@ module.exports = {
           const fileType = item.fileType;
           const file = item.file;
 
-          const process = await Process.create({
-            fileName,
-            // fileId,
-            status: "waiting",
-            fileType,
-            processId,
-            processName,
-            engineId,
-            engineName,
-            engineDomain,
-            engineSource,
-            engineTarget,
-            email: username
-          });
+          const process = await Process.create(
+            {
+              fileName,
+              // fileId,
+              status: "waiting",
+              fileType,
+              processId,
+              processName,
+              engineId,
+              engineName,
+              engineDomain,
+              engineSource,
+              engineTarget,
+              email: username
+            },
+            { transaction }
+          );
 
           fs.mkdirSync(pathFolder);
           const path = Path.resolve(
@@ -856,10 +863,12 @@ module.exports = {
                 {
                   where: {
                     id: process.id
-                  }
+                  },
+                  transaction
                 }
               );
               user.addProcess(process);
+              await transaction.commit();
               return true;
             } else {
               throw new Error(errorMessage);
@@ -868,9 +877,10 @@ module.exports = {
             throw new Error("Error to save file");
           }
         },
-        err => {
+        async err => {
           deleteFolderRecursive(pathFolder);
           if (err) {
+            if (transaction) await transaction.rollback();
             return res.status(500).send({
               error: err
             });
@@ -885,6 +895,7 @@ module.exports = {
       console.log("\x1b[32m", "**************quoteFile*****************");
       console.log(error.message);
       console.log("\x1b[32m", "*******************************");
+      if (transaction) await transaction.rollback();
       return res.status(400).send({
         error: error
       });
