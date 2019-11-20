@@ -17,7 +17,7 @@ const BillingInformation = db.BillingInformation;
 const Engines = db.Engines;
 
 const _ = require("lodash");
-const map = require("async/map");
+const map = require("async/mapSeries");
 
 const mailer = require("./../util/mailer");
 const paypal = require("./../util/paypal");
@@ -755,10 +755,7 @@ module.exports = {
   },
 
   quoteFile: async (req, res) => {
-    let transaction;
     try {
-      transaction = await db.sequelize.transaction();
-
       console.log("\x1b[32m", "**************quoteFile*****************");
       console.log(JSON.stringify(req.body.process));
       console.log(JSON.stringify(req.body.engine));
@@ -775,12 +772,6 @@ module.exports = {
       const files = req.body.files;
       const apikey = req.user.rol !== "admin" ? req.user.apikey : "000000";
 
-      const folderName = moment().valueOf();
-      const pathFolder = Path.resolve(
-        __dirname,
-        `./../../uploads/${folderName}/`
-      );
-
       map(
         files,
         async item => {
@@ -788,22 +779,25 @@ module.exports = {
           const fileType = item.fileType;
           const file = item.file;
 
-          const process = await Process.create(
-            {
-              fileName,
-              // fileId,
-              status: "waiting",
-              fileType,
-              processId,
-              processName,
-              engineId,
-              engineName,
-              engineDomain,
-              engineSource,
-              engineTarget,
-              email: username
-            },
-            { transaction }
+          const process = await Process.create({
+            fileName,
+            // fileId,
+            status: "waiting",
+            fileType,
+            processId,
+            processName,
+            engineId,
+            engineName,
+            engineDomain,
+            engineSource,
+            engineTarget,
+            email: username
+          });
+
+          const folderName = moment().valueOf();
+          const pathFolder = Path.resolve(
+            __dirname,
+            `./../../uploads/${folderName}/`
           );
 
           fs.mkdirSync(pathFolder);
@@ -863,12 +857,11 @@ module.exports = {
                 {
                   where: {
                     id: process.id
-                  },
-                  transaction
+                  }
                 }
               );
               user.addProcess(process);
-              await transaction.commit();
+              deleteFolderRecursive(pathFolder);
               return true;
             } else {
               throw new Error(errorMessage);
@@ -877,10 +870,8 @@ module.exports = {
             throw new Error("Error to save file");
           }
         },
-        async err => {
-          deleteFolderRecursive(pathFolder);
+        async (err, result) => {
           if (err) {
-            if (transaction) await transaction.rollback();
             return res.status(500).send({
               error: err
             });
@@ -895,7 +886,6 @@ module.exports = {
       console.log("\x1b[32m", "**************quoteFile*****************");
       console.log(error.message);
       console.log("\x1b[32m", "*******************************");
-      if (transaction) await transaction.rollback();
       return res.status(400).send({
         error: error
       });

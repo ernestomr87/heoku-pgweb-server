@@ -56,19 +56,23 @@ const saveFile = async (file, folderName, fileName, fileType) => {
   }
 };
 
-const deleteFolderRecursive = path => {
-  if (fs.existsSync(path)) {
-    fs.readdirSync(path).forEach((file, index) => {
-      const curPath = Path.join(path, file);
-      if (fs.lstatSync(curPath).isDirectory()) {
-        // recurse
-        deleteFolderRecursive(curPath);
-      } else {
-        // delete file
-        fs.unlinkSync(curPath);
-      }
-    });
-    fs.rmdirSync(path);
+const deleteFolderRecursive = async path => {
+  try {
+    if (fs.existsSync(path)) {
+      fs.readdirSync(path).forEach((file, index) => {
+        const curPath = Path.join(path, file);
+        if (fs.lstatSync(curPath).isDirectory()) {
+          // recurse
+          deleteFolderRecursive(curPath);
+        } else {
+          // delete file
+          fs.unlinkSync(curPath);
+        }
+      });
+      fs.rmdirSync(path);
+    }
+  } catch (error) {
+    console.log(error);
   }
 };
 
