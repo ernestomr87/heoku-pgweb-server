@@ -2,7 +2,6 @@ var express = require("express");
 var cors = require("cors");
 var path = require("path");
 var bodyParser = require("body-parser");
-// var morgan = require("morgan");
 var index = require("./api/routes/index");
 var app = express();
 global.APP_ROOT = path.resolve(__dirname);
@@ -30,16 +29,15 @@ app.use(logError);
 // require("./api/controllers/users").listCorp();
 
 app.set("trust proxy");
-// app.use(morgan("dev"));
 app.use(
   bodyParser.json({
-    limit: "2mb",
+    limit: "500mb",
     extended: true
   })
 );
 app.use(
   bodyParser.urlencoded({
-    limit: "2mb",
+    limit: "500mb",
     extended: true
   })
 );
