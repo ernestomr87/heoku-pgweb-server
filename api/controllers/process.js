@@ -756,28 +756,39 @@ module.exports = {
 
   quoteFile: async (req, res) => {
     try {
-      console.log("\x1b[32m", "**************quoteFile*****************");
-      console.log(JSON.stringify(req.body.process));
-      console.log(JSON.stringify(req.body.engine));
-      console.log("\x1b[32m", "*******************************");
+      const {
+        processId,
+        processName,
+        engineId,
+        engineName,
+        engineDomain,
+        engineSource,
+        engineTarget
+      } = req.body;
 
       const username = req.userEmail;
-      const processId = req.body.process.id;
-      const processName = req.body.process.name;
-      const engineId = req.body.engine.id;
-      const engineName = req.body.engine.name;
-      const engineDomain = req.body.engine.domain;
-      const engineSource = req.body.engine.source;
-      const engineTarget = req.body.engine.target;
-      const files = req.body.files;
+      let files = [];
+      if (Array.isArray(req.files["files[]"])) {
+        files = req.files["files[]"];
+      } else {
+        files.push(req.files["files[]"]);
+      }
+
       const apikey = req.user.rol !== "admin" ? req.user.apikey : "000000";
+
+      //  processId: aux[0],
+      // processName: selected.name,
+      // engineId: nameEng.id,
+      // engineName: nameEng.name,
+      // engineDomain: nameEng.domain,
+      // engineSource: nameEng.source,
+      // engineTarget: nameEng.target,
 
       map(
         files,
-        async item => {
-          const fileName = item.fileName;
-          const fileType = item.fileType;
-          const file = item.file;
+        async file => {
+          const fileName = file.name;
+          const fileType = file.mimetype;
 
           const process = await Process.create({
             fileName,
@@ -807,7 +818,7 @@ module.exports = {
             fileName
           );
 
-          const save = await saveFile(file, folderName, fileName, fileType);
+          const save = await saveFile(file, path);
 
           if (save) {
             let form = new FormData();

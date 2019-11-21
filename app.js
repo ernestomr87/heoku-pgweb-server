@@ -4,6 +4,10 @@ var path = require("path");
 var bodyParser = require("body-parser");
 var index = require("./api/routes/index");
 var app = express();
+const fileUpload = require('express-fileupload');
+app.use(fileUpload({
+  limits: { fileSize: 500 * 1024 * 1024 },
+}));
 global.APP_ROOT = path.resolve(__dirname);
 
 const winston = require("winston");

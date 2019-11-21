@@ -31,29 +31,20 @@ const getStatus = status => {
   }
 };
 
-const saveFile = async (file, folderName, fileName, fileType) => {
-  try {
-    let ff = file.split(";base64,").pop();
-    let buff = Buffer.from(ff, "base64");
-
-    return new Promise((resolve, reject) => {
-      fs.writeFile(
-        `uploads/${folderName}/${fileName}`,
-        buff,
-        "base64",
-        async err => {
-          if (err) {
-            return reject(err);
-          } else {
-            return resolve(true);
-          }
+const saveFile = async (file, path) => {
+  return new Promise((resolve, reject) => {
+    try {
+      file.mv(path, function(err) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(true);
         }
-      );
-    });
-  } catch (error) {
-    console.log(error);
-    return false;
-  }
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
 };
 
 const deleteFolderRecursive = async path => {
