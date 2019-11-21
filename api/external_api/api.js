@@ -1,5 +1,7 @@
 "use strict";
 const axios = require("axios");
+const request = require("request");
+const followRedirects = require("follow-redirects");
 
 const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
 const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
@@ -112,11 +114,48 @@ module.exports = {
     });
   },
   sendfile: function(form) {
-    return axios
-      .create({
-        headers: form.getHeaders()
-      })
-      .post(`${API_ENGINE}sendfile`, form);
+    followRedirects.maxRedirects = 10;
+    followRedirects.maxBodyLength = 500 * 1024 * 1024; // 500 MB
+
+    // return axios({
+    //   url: `${API_ENGINE}sendfile`,
+    //   headers: {
+    //     maxContentLength: Infinity,
+    //     maxBodyLength: Infinity,
+    //     "content-type": "multipart/form-data"
+    //   },
+    //   method: "post",
+    //   data: {
+    //     ...form
+    //   }
+    // });
+
+    // return axios
+    //   .create({
+    //     headers: {
+    //       maxContentLength: Infinity,
+    //       maxBodyLength: Infinity,
+    //       "content-type": "multipart/form-data"
+    //     }
+    //   })
+    //   .post(`${API_ENGINE}sendfile`, form);
+
+    return new Promise((resolve, reject) => {
+      try {
+        request.post(
+          { url: `${API_ENGINE}sendfile`, formData: form },
+          function optionalCallback(err, httpResponse, body) {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(body);
+            }
+          }
+        );
+      } catch (error) {
+        reject(error);
+      }
+    });
   },
 
   //API NODES

@@ -821,24 +821,37 @@ module.exports = {
           const save = await saveFile(file, path);
 
           if (save) {
-            let form = new FormData();
+            // let form = new FormData();
 
             let modestatus = req.user.typeOfUser === 1 ? 10 : 5;
             if (req.user.rol === "admin") modestatus = 10;
 
-            form.append("file", fs.createReadStream(path));
-            form.append("title", fileName);
-            form.append("engine", engineId);
-            form.append("src", engineSource);
-            form.append("tgt", engineTarget);
-            form.append("apikey", apikey);
-            form.append("processname", "PGWEB");
-            form.append("username", username);
-            form.append("modestatus", modestatus);
-            form.append(
-              "notiflink",
-              "http://pgweb.pangeamt.com:3004/api/notification"
-            );
+            // form.append("file", fs.createReadStream(path));
+            // form.append("title", fileName);
+            // form.append("engine", engineId);
+            // form.append("src", engineSource);
+            // form.append("tgt", engineTarget);
+            // form.append("apikey", apikey);
+            // form.append("processname", "PGWEB");
+            // form.append("username", username);
+            // form.append("modestatus", modestatus);
+            // form.append(
+            //   "notiflink",
+            //   "http://pgweb.pangeamt.com:3004/api/notification"
+            // );
+
+            let form = {
+              file: fs.createReadStream(path),
+              title: fileName,
+              engine: engineId,
+              src: engineSource,
+              tgt: engineTarget,
+              apikey: apikey,
+              processname: "PGWEB",
+              username: username,
+              modestatus: modestatus,
+              notiflink: "http://pgweb.pangeamt.com:3004/api/notification"
+            };
 
             let body = await externalApi.sendfile(form);
 
