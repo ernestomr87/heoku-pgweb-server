@@ -25,6 +25,8 @@ const getStatus = status => {
       return "Downloaded";
     case 120:
       return "Downloaded";
+    case -10:
+      return "Processing Error";
 
     default:
       return "Waiting";
