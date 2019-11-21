@@ -875,14 +875,27 @@ module.exports = {
               deleteFolderRecursive(pathFolder);
               return true;
             } else {
+              console.log(
+                "\x1b[32m",
+                "**************quoteFile*****************"
+              );
+              console.log(errorMessage);
+              console.log("\x1b[32m", "*******************************");
               throw new Error(errorMessage);
             }
           } else {
+            console.log("\x1b[32m", "**************quoteFile*****************");
+            console.log("Error to save file");
+            console.log("\x1b[32m", "*******************************");
+            throw new Error(errorMessage);
             throw new Error("Error to save file");
           }
         },
         async (err, result) => {
           if (err) {
+            console.log("\x1b[32m", "**************quoteFile*****************");
+            console.log(err.message);
+            console.log("\x1b[32m", "*******************************");
             return res.status(500).send({
               error: err
             });
