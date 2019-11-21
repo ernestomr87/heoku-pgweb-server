@@ -146,14 +146,14 @@ module.exports = {
           { url: `${API_ENGINE}sendfile`, formData: form },
           function optionalCallback(err, httpResponse, body) {
             if (err) {
-              reject(err);
+              return reject(err);
             } else {
-              resolve(body);
+              return resolve(JSON.parse(body));
             }
           }
         );
       } catch (error) {
-        reject(error);
+        return reject(error);
       }
     });
   },

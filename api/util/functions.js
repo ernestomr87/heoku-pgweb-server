@@ -1,5 +1,6 @@
 const fs = require("fs");
 const Path = require("path");
+var winston = require("./../../config/winston");
 
 const getStatus = status => {
   switch (status) {
@@ -69,8 +70,35 @@ const deleteFolderRecursive = async path => {
   }
 };
 
+const logsConsole = data => {
+  const { message, method, line } = data;
+
+  console.log("\n");
+  console.log("\x1b[33m%s\x1b[0m", "***************MODELS****************");
+  console.log("\x1b[33m%s\x1b[0m", JSON.stringify(message));
+  console.log("\x1b[33m%s\x1b[0m", JSON.stringify(method));
+  console.log("\x1b[33m%s\x1b[0m", ` ${JSON.stringify(line)}`);
+  console.log("\x1b[33m%s\x1b[0m", "*************************************");
+  console.log("\n");
+  
+  winston.error(`message: ${message}`); 
+  winston.error(`method: ${method}`); 
+  winston.error(`line: ${line}`); 
+
+
+
+
+  // logger.info('What rolls down stairs');
+  // logger.info('alone or in pairs,');
+  // logger.info('and over your neighbors dog?');
+  // logger.warn('Whats great for a snack,');
+  // logger.info('And fits on your back?');
+  // logger.error('Its log, log, log');
+};
+
 module.exports = {
   getStatus,
   saveFile,
-  deleteFolderRecursive
+  deleteFolderRecursive,
+  logsConsole
 };

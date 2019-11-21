@@ -1,0 +1,35 @@
+{"message":"::1 - - [21/Nov/2019:14:49:30 +0000] \"OPTIONS /api/process/user HTTP/1.1\" 204 0 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:14:49:30 +0000] \"OPTIONS /api/engines/user HTTP/1.1\" 204 0 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:14:49:33 +0000] \"GET /api/process/user HTTP/1.1\" 304 - \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:14:49:33 +0000] \"OPTIONS /api/process/process HTTP/1.1\" 204 0 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:14:49:33 +0000] \"GET /api/process/process HTTP/1.1\" 200 1291 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:14:49:33 +0000] \"GET /api/engines/user HTTP/1.1\" 200 35341 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:14:50:06 +0000] \"OPTIONS /api/process/quoteFile HTTP/1.1\" 204 0 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:14:50:14 +0000] \"POST /api/process/quoteFile HTTP/1.1\" 500 12 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:15:01:09 +0000] \"OPTIONS /api/process/quoteFile HTTP/1.1\" 204 0 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"Its log, log, log","level":"error"}
+{"message":"::1 - - [21/Nov/2019:15:01:50 +0000] \"POST /api/process/quoteFile HTTP/1.1\" 500 12 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:15:04:26 +0000] \"OPTIONS /api/process/quoteFile HTTP/1.1\" 204 0 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"message: Cannot read property 'fileId' of undefined\n                 method : quoteFile\n                 line   : 905\n  ","level":"error"}
+{"message":"::1 - - [21/Nov/2019:15:04:28 +0000] \"POST /api/process/quoteFile HTTP/1.1\" 500 12 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:15:07:50 +0000] \"OPTIONS /api/process/quoteFile HTTP/1.1\" 204 0 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"message: Cannot read property 'fileId' of undefined","level":"error"}
+{"message":"method: quoteFile","level":"error"}
+{"message":"line: 905","level":"error"}
+{"message":"::1 - - [21/Nov/2019:15:07:52 +0000] \"POST /api/process/quoteFile HTTP/1.1\" 500 12 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:15:08:33 +0000] \"OPTIONS /api/process/quoteFile HTTP/1.1\" 204 0 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"message: Cannot read property 'fileId' of undefined","level":"warn"}
+{"message":"method: quoteFile","level":"warn"}
+{"message":"line: 905","level":"warn"}
+{"message":"::1 - - [21/Nov/2019:15:08:36 +0000] \"POST /api/process/quoteFile HTTP/1.1\" 500 12 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:15:49:21 +0000] \"OPTIONS /api/process/quoteFile HTTP/1.1\" 204 0 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"message: Cannot read property 'fileId' of undefined","level":"warn"}
+{"message":"method: quoteFile","level":"warn"}
+{"message":"line: 905","level":"warn"}
+{"message":"::1 - - [21/Nov/2019:15:49:23 +0000] \"POST /api/process/quoteFile HTTP/1.1\" 500 12 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:15:50:20 +0000] \"OPTIONS /api/process/quoteFile HTTP/1.1\" 204 0 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"message: Cannot read property 'fileId' of undefined","level":"error"}
+{"message":"method: quoteFile","level":"error"}
+{"message":"line: 905","level":"error"}
+{"message":"::1 - - [21/Nov/2019:15:51:03 +0000] \"POST /api/process/quoteFile HTTP/1.1\" 500 12 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}
+{"message":"::1 - - [21/Nov/2019:15:52:30 +0000] \"OPTIONS /api/process/quoteFile HTTP/1.1\" 204 0 \"http://localhost:3000/dashboard/process-services/new\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36\"\n","level":"info"}

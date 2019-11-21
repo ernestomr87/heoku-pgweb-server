@@ -32,7 +32,8 @@ const allowedFiles = CONFIG_APP.allowedFiles;
 const {
   getStatus,
   saveFile,
-  deleteFolderRecursive
+  deleteFolderRecursive,
+  logsConsole
 } = require("./../util/functions");
 
 const filterEngines = (engines, types) => {
@@ -776,14 +777,6 @@ module.exports = {
 
       const apikey = req.user.rol !== "admin" ? req.user.apikey : "000000";
 
-      //  processId: aux[0],
-      // processName: selected.name,
-      // engineId: nameEng.id,
-      // engineName: nameEng.name,
-      // engineDomain: nameEng.domain,
-      // engineSource: nameEng.source,
-      // engineTarget: nameEng.target,
-
       map(
         files,
         async file => {
@@ -855,7 +848,7 @@ module.exports = {
 
             let body = await externalApi.sendfile(form);
 
-            const fileId = body.data.fileId;
+            const fileId = body.fileId;
             if (fileId && req.userId) {
               const user = await User.findOne({
                 where: {
@@ -888,27 +881,29 @@ module.exports = {
               deleteFolderRecursive(pathFolder);
               return true;
             } else {
-              console.log(
-                "\x1b[32m",
-                "**************quoteFile*****************"
-              );
-              console.log(errorMessage);
-              console.log("\x1b[32m", "*******************************");
+              logsConsole({
+                message: errorMessage,
+                method: "quoteFile",
+                line: 887
+              });
               throw new Error(errorMessage);
             }
           } else {
-            console.log("\x1b[32m", "**************quoteFile*****************");
-            console.log("Error to save file");
-            console.log("\x1b[32m", "*******************************");
-            throw new Error(errorMessage);
+            logsConsole({
+              message: "Error to save file",
+              method: "quoteFile",
+              line: 895
+            });
             throw new Error("Error to save file");
           }
         },
         async (err, result) => {
           if (err) {
-            console.log("\x1b[32m", "**************quoteFile*****************");
-            console.log(err.message);
-            console.log("\x1b[32m", "*******************************");
+            logsConsole({
+              message: err.message,
+              method: "quoteFile",
+              line: 905
+            });
             return res.status(500).send({
               error: err
             });
@@ -920,9 +915,11 @@ module.exports = {
         }
       );
     } catch (error) {
-      console.log("\x1b[32m", "**************quoteFile*****************");
-      console.log(error.message);
-      console.log("\x1b[32m", "*******************************");
+      logsConsole({
+        message: error.message,
+        method: "quoteFile",
+        line: 921
+      });
       return res.status(400).send({
         error: error
       });
