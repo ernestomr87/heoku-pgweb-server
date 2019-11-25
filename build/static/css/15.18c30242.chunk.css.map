@@ -1,1 +1,0 @@
-{"version":3,"sources":["index.css"],"names":[],"mappings":"AAIA,YACE,eACF,CACA,mBACE,WACF,CACA,mBACE,UACF","file":"15.18c30242.chunk.css","sourcesContent":["/* .ant-form-inline .ant-form-item {\n    margin: 1px;\n} */\n\n.login-form {\n  max-width: 300px;\n}\n.login-form-forgot {\n  float: right;\n}\n.login-form-button {\n  width: 100%;\n}\n"]}

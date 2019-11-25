@@ -1,5 +1,7 @@
 "use strict";
 const axios = require("axios");
+const request = require("request");
+const followRedirects = require("follow-redirects");
 
 const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
 const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
@@ -14,7 +16,6 @@ module.exports = {
       url: `${API_ENGINE}describeengines/${API_KEY}`
     });
   },
-
   processFile: function processFile(
     username,
     source,
@@ -22,7 +23,8 @@ module.exports = {
     engineid,
     fileName,
     fileType,
-    file
+    file,
+    apikey
   ) {
     return axios({
       method: "post",
@@ -30,7 +32,7 @@ module.exports = {
       data: {
         notiflink: `${BASE_URL}/api/notification`,
         username,
-        apikey: API_KEY,
+        apikey,
         source,
         target,
         engineid,
@@ -40,8 +42,11 @@ module.exports = {
       }
     });
   },
-
-  processFileAfterQuoteFile: function processFile(fileId, processOptionId) {
+  processFileAfterQuoteFile: function processFile(
+    fileId,
+    processOptionId,
+    apikey
+  ) {
     return axios({
       method: "post",
       url: `${API_ENGINE}processfile`,
@@ -49,11 +54,10 @@ module.exports = {
         notiflink: `${BASE_URL}/api/notification`,
         fileId,
         processOptionId,
-        apikey: API_KEY
+        apikey
       }
     });
   },
-
   quoteFile: function processFile(
     username,
     source,
@@ -61,7 +65,8 @@ module.exports = {
     engineid,
     fileName,
     fileType,
-    file
+    file,
+    apikey
   ) {
     return axios({
       method: "post",
@@ -69,7 +74,7 @@ module.exports = {
       data: {
         notiflink: `${BASE_URL}/api/notification`,
         username,
-        apikey: API_KEY,
+        apikey,
         source,
         target,
         engineid,
@@ -79,7 +84,6 @@ module.exports = {
       }
     });
   },
-
   filestatus: function retrieveFile(guids) {
     return axios({
       method: "post",
@@ -91,20 +95,70 @@ module.exports = {
       }
     });
   },
-
-  retrievefile: function retrieveFile(guid) {
+  retrievefile: function retrieveFile(guid, apikey) {
     return axios({
       method: "post",
       url: `${API_ENGINE}retrievefile`,
       data: {
         notiflink: `${BASE_URL}/api/notification`,
-        apikey: API_KEY,
+        apikey,
         guid
       }
     });
   },
+  downloadfile: function retrieveFile(fileid, apikey) {
+    return axios({
+      method: "get",
+      responseType: "stream",
+      url: `${API_ENGINE}download?fileid=${fileid}&apikey=${apikey}`
+    });
+  },
+  sendfile: function(form) {
+    followRedirects.maxRedirects = 10;
+    followRedirects.maxBodyLength = 500 * 1024 * 1024; // 500 MB
 
-  //GET NODES
+    // return axios({
+    //   url: `${API_ENGINE}sendfile`,
+    //   headers: {
+    //     maxContentLength: Infinity,
+    //     maxBodyLength: Infinity,
+    //     "content-type": "multipart/form-data"
+    //   },
+    //   method: "post",
+    //   data: {
+    //     ...form
+    //   }
+    // });
+
+    // return axios
+    //   .create({
+    //     headers: {
+    //       maxContentLength: Infinity,
+    //       maxBodyLength: Infinity,
+    //       "content-type": "multipart/form-data"
+    //     }
+    //   })
+    //   .post(`${API_ENGINE}sendfile`, form);
+
+    return new Promise((resolve, reject) => {
+      try {
+        request.post(
+          { url: `${API_ENGINE}sendfile`, formData: form },
+          function optionalCallback(err, httpResponse, body) {
+            if (err) {
+              return reject(err);
+            } else {
+              return resolve(JSON.parse(body));
+            }
+          }
+        );
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  },
+
+  //API NODES
   getNodes: () => {
     return axios({
       method: "post",
@@ -121,28 +175,10 @@ module.exports = {
       }
     });
   },
-  setNode: data => {
-    return axios({
-      method: "post",
-      url: `${API_ENGINE_NEX_RELAY}corp/editnode`,
-      data: {
-        ...data
-      }
-    });
-  },
   delNode: data => {
     return axios({
       method: "post",
       url: `${API_ENGINE_NEX_RELAY}corp/delnode`,
-      data: {
-        ...data
-      }
-    });
-  },
-  setStatusNode: data => {
-    return axios({
-      method: "post",
-      url: `${API_ENGINE_NEX_RELAY}corp/nodestatus`,
       data: {
         ...data
       }
@@ -155,6 +191,238 @@ module.exports = {
       data: {
         ...data
       }
+    });
+  },
+  enabledNode: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/enablenode`,
+      data: {
+        ...data
+      }
+    });
+  },
+  disabledNode: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/disablenode`,
+      data: {
+        ...data
+      }
+    });
+  },
+
+  //API MODELS
+  getModels: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/models`,
+      data: { ...data }
+    });
+  },
+  addModel: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/addmodel`,
+      data: { ...data }
+    });
+  },
+  delModel: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/delmodel`,
+      data: { ...data }
+    });
+  },
+  cloneModel: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/clonemodel`,
+      data: { ...data }
+    });
+  },
+
+  //API EDS
+  //API MODELS
+  getEds: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/eds`,
+      data: { ...form }
+    });
+  },
+  addEd: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/added`,
+      data: { ...data }
+    });
+  },
+  delEd: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/deled`,
+      data: { ...data }
+    });
+  },
+  enabledEd: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/enableed`,
+      data: { ...data }
+    });
+  },
+  disabledEd: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/disableed`,
+      data: { ...data }
+    });
+  },
+
+  //API SERVICES
+  getServices: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/services`,
+      data: { ...form }
+    });
+  },
+
+  //API ENGINES
+  getEngines: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/engines`,
+      data: { ...form }
+    });
+  },
+  addEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/addengine`,
+      data: { ...data }
+    });
+  },
+  delEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/delengine`,
+      data: { ...data }
+    });
+  },
+  enabledEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/enableengine`,
+      data: { ...data }
+    });
+  },
+  disabledEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/disableengine`,
+      data: { ...data }
+    });
+  },
+  enginesByAdmin: () => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/engines`
+    });
+  },
+  enginesByUser: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/userengines`,
+      data: { ...data }
+    });
+  },
+  enginesByClient: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/clientengines`,
+      data: { ...data }
+    });
+  },
+  addClientEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/addclientengine`,
+      data: { ...data }
+    });
+  },
+  addUserEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/adduserengine`,
+      data: { ...data }
+    });
+  },
+  delUserEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/deluserengine`,
+      data: { ...data }
+    });
+  },
+  delClientEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/delclientengine`,
+      data: { ...data }
+    });
+  },
+
+  updateClientEngine: data => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/updateclientengine`,
+      data: { ...data }
+    });
+  },
+
+  //USERS
+  addClient: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/addclient`,
+      data: { ...form }
+    });
+  },
+  addUser: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/adduser`,
+      data: { ...form }
+    });
+  },
+  delClient: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/delclient `,
+      data: { ...form }
+    });
+  },
+  delUser: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/deluser`,
+      data: { ...form }
+    });
+  },
+  getstats: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}corp/getStats`,
+      data: { ...form }
+    });
+  },
+  translate: form => {
+    return axios({
+      method: "post",
+      url: `${API_ENGINE_NEX_RELAY}translate`,
+      data: { ...form }
     });
   }
 };

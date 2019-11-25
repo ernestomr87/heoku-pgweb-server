@@ -7,6 +7,9 @@ const typeOfPermits = require("./typeOfPermits");
 const users = require("./users");
 const billing = require("./billing");
 const nodes = require("./nodes");
+const models = require("./models");
+const eds = require("./eds");
+const engines = require("./engines");
 
 module.exports = {
   auth,
@@ -15,5 +18,8 @@ module.exports = {
   typeOfPermits,
   users,
   billing,
-  nodes
+  nodes,
+  models,
+  eds,
+  engines
 };

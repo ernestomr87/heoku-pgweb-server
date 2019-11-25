@@ -1,14 +1,10 @@
 const jwt = require("jsonwebtoken");
-const requestIp = require("request-ip");
 const config = require(`./../../config/${process.env.NODE_APP}.json`);
 const db = require("./../../db/models/index");
 const User = db.User;
 
 const verifyToken = async (req, res, next) => {
-  const clientIp = requestIp.getClientIp(req);
-  console.log("\x1b[33m%s\x1b[0m", "req.headers.origin", clientIp);
   let token = req.headers["x-access-token"] || req.body.token;
-
   if (!token) {
     return res.status(403).send({
       auth: false,
@@ -18,11 +14,15 @@ const verifyToken = async (req, res, next) => {
 
   jwt.verify(token, config.secret, (err, decoded) => {
     if (err) {
+      console.log("\x1b[32m", "*******************************");
+      console.log(err.message);
+      console.log("\x1b[32m", "*******************************");
       return res.status(500).send({
         auth: false,
         message: "Fail to Authentication. Error -> " + err
       });
     }
+    req.user = decoded;
     req.userId = decoded.id;
     req.userEmail = decoded.email;
     req.userRol = decoded.rol;

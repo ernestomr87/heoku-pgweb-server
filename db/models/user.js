@@ -1,12 +1,14 @@
-'use strict';
+"use strict";
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define(
-    'User',
+    "User",
     {
       fullName: DataTypes.STRING,
       password: DataTypes.STRING,
       email: DataTypes.STRING,
+      apikey: DataTypes.STRING,
       rol: DataTypes.STRING,
+      lastLogin: DataTypes.DATE,
       remove: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
@@ -18,18 +20,17 @@ module.exports = (sequelize, DataTypes) => {
       typeOfUser: {
         type: DataTypes.INTEGER,
         defaultValue: 3
-      },
+      }
     },
     {}
   );
   User.associate = function(models) {
+    User.hasMany(models.Training);
     User.hasMany(models.Process);
     User.hasMany(models.Notification);
     User.hasMany(models.User);
     User.belongsTo(models.TypeOfPermits);
     User.hasOne(models.BillingInformation);
-
   };
   return User;
 };
-

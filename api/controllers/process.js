@@ -1,5 +1,11 @@
 ("use strict");
 const uuidv4 = require("uuid/v4");
+const moment = require("moment");
+
+const FormData = require("form-data");
+const fs = require("fs");
+const Path = require("path");
+
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
 const db = require("./../../db/models");
@@ -11,7 +17,7 @@ const BillingInformation = db.BillingInformation;
 const Engines = db.Engines;
 
 const _ = require("lodash");
-const map = require("async/map");
+const map = require("async/mapSeries");
 
 const mailer = require("./../util/mailer");
 const paypal = require("./../util/paypal");
@@ -23,7 +29,12 @@ const common = require("./../../config/common");
 const apiKey = CONFIG_APP.apiKey;
 const allowedFiles = CONFIG_APP.allowedFiles;
 
-const { getStatus } = require("./../util/functions");
+const {
+  getStatus,
+  saveFile,
+  deleteFolderRecursive,
+  logsConsole
+} = require("./../util/functions");
 
 const filterEngines = (engines, types) => {
   let newArrays = [];
@@ -57,13 +68,18 @@ const consultAndCreate = async (res, data) => {
     engineTarget,
     files
   } = data;
+  const apikey = "casualuser";
+
+  const folderName = moment().valueOf();
+  const pathFolder = Path.resolve(__dirname, `./../../uploads/${folderName}/`);
 
   map(
     files,
     async item => {
       const fileName = item.fileName;
       const fileType = item.fileType;
-      const file = item.file.replace(`data:${fileType};base64,`, "");
+      const file = item.file;
+
       const process = await Process.create({
         fileName,
         // fileId,
@@ -80,57 +96,206 @@ const consultAndCreate = async (res, data) => {
         email: username
       });
 
-      const quote = await externalApi.quoteFile(
-        username,
-        engineSource,
-        engineTarget,
-        engineId,
-        fileName,
-        fileType,
-        file
+      fs.mkdirSync(pathFolder);
+      const path = Path.resolve(
+        __dirname,
+        `./../../uploads/${folderName}/`,
+        fileName
       );
 
-      const error = quote.data.error;
-      const errorMessage = quote.data.errormessage;
-      const fileId = quote.data.fileId;
+      const save = await saveFile(file, folderName, fileName, fileType);
 
-      if (error !== 0 && fileId) {
-        await Process.update(
-          {
-            fileId
-          },
-          {
-            where: {
-              id: process.id
-            }
-          }
+      if (save) {
+        let form = new FormData();
+
+        form.append("file", fs.createReadStream(path));
+        form.append("title", fileName);
+        form.append("engine", engineId);
+        form.append("src", engineSource);
+        form.append("tgt", engineTarget);
+        form.append("apikey", apikey);
+        form.append("processname", "PGWEB");
+        form.append("username", username);
+        form.append("modestatus", 5);
+        form.append(
+          "notiflink",
+          "http://pgweb.pangeamt.com:3004/api/notification"
         );
-        return true;
+
+        let body = await externalApi.sendfile(form);
+
+        const fileId = body.data.fileId;
+        if (fileId) {
+          await Process.update(
+            {
+              fileId
+            },
+            {
+              where: {
+                id: process.id
+              }
+            }
+          );
+
+          return true;
+        } else {
+          throw new Error(errorMessage);
+        }
       } else {
-        throw new Error(errorMessage);
+        throw new Error("Error to save file");
       }
     },
     err => {
+      deleteFolderRecursive(pathFolder);
       if (err) {
         return res.status(500).send({
           error: err
         });
+      } else {
+        mailer.main(username, "received", null, true);
+        return res.status(200).json({
+          data: "ok"
+        });
       }
-      mailer.main(username, "received", null, true);
-      return res.status(200).json({
-        data: "ok"
-      });
     }
   );
 };
 
+const downloadFile = async (fileid, apikey) => {
+  const response = await externalApi.downloadfile(fileid, apikey);
+  const folderName = moment().valueOf();
+  let filename = response.headers["content-disposition"];
+  filename = filename
+    .split('="')[1]
+    .substring(0, filename.split('="')[1].length - 1);
+
+  const path = Path.resolve(
+    __dirname,
+    `./../../downloads/${folderName}/`,
+    filename
+  );
+  const pathFolder = Path.resolve(
+    __dirname,
+    `./../../downloads/${folderName}/`
+  );
+  fs.mkdirSync(pathFolder);
+  const writer = fs.createWriteStream(path);
+  response.data.pipe(writer);
+
+  return new Promise((resolve, reject) => {
+    writer.on("finish", () => {
+      return resolve({ path, filename });
+    });
+    writer.on("error", error => {
+      return reject(error);
+    });
+  });
+};
+
+const formatStatDataSource = data => {
+  let array = [];
+  const datas = Object.keys(data);
+  for (let i = 0; i < datas.length; i++) {
+    for (let j = 0; j < data[datas[i]].length; j++) {
+      let aux = data[datas[i]][j];
+      let key = Object.keys(aux)[0];
+      if (array.length) {
+        let flag = false;
+        array.map(item => {
+          let akey = Object.keys(item)[0];
+          if (akey === key) {
+            flag = true;
+            item[akey].c = item[akey].c + aux[key].c;
+            item[akey].s = item[akey].c + aux[key].s;
+            item[akey].w = item[akey].c + aux[key].w;
+          }
+        });
+        if (!flag) {
+          let a = {};
+          a[key] = aux[key];
+          array.push(a);
+        }
+      } else {
+        let a = {};
+        a[key] = aux[key];
+        array.push(a);
+      }
+    }
+  }
+
+  let narray = [];
+  let total = {
+    id: `stTotal`,
+    time: "Total",
+    characters: 0,
+    words: 0,
+    segments: 0
+  };
+  array.map(item => {
+    total.characters += item[Object.keys(item)[0]].c;
+    total.words += item[Object.keys(item)[0]].w;
+    total.segments += item[Object.keys(item)[0]].s;
+  });
+  narray.push(total);
+
+  return narray;
+};
+const formatFileDataSource = data => {
+  let array = [];
+  const datas = Object.keys(data);
+  for (let i = 0; i < datas.length; i++) {
+    if (data[datas[i]].length) {
+      for (let j = 0; j < data[datas[i]].length; j++) {
+        let aux = data[datas[i]][j];
+        let key = Object.keys(aux)[0];
+        if (array.length) {
+          let flag = false;
+          array.map(item => {
+            let akey = Object.keys(item)[0];
+            if (akey === key) {
+              flag = true;
+              item[akey].c = item[akey].c + aux[key].c;
+              item[akey].s = item[akey].c + aux[key].s;
+              item[akey].w = item[akey].c + aux[key].w;
+            }
+          });
+          if (!flag) {
+            let a = {};
+            a[key] = aux[key];
+            array.push(a);
+          }
+        } else {
+          let a = {};
+          a[key] = aux[key];
+          array.push(a);
+        }
+      }
+    }
+  }
+
+  let narray = [];
+  let total = {
+    id: `statsTotal`,
+    time: "Total",
+    files: 0,
+    pages: 0
+  };
+  array.map(item => {
+    total.files += item[Object.keys(item)[0]].files;
+    total.pages += item[Object.keys(item)[0]].pages;
+  });
+  narray.push(total);
+  // setDataSourceFile(narray);
+  return narray;
+};
+
 module.exports = {
   getProcess: async (req, res) => {
-    console.log(
-      "\x1b[33m%s\x1b[0m",
-      "req.headers.origin",
-      JSON.stringify(req.headers)
-    );
+    // console.log(
+    //   "\x1b[33m%s\x1b[0m",
+    //   "req.headers.origin",
+    //   JSON.stringify(req.headers)
+    // );
     try {
       const user = await User.findOne({
         where: {
@@ -140,6 +305,7 @@ module.exports = {
 
       const process = await user.getProcesses({
         attributes: [
+          "id",
           "uuid",
           "fileName",
           "fileId",
@@ -153,9 +319,15 @@ module.exports = {
           "status",
           "quotes",
           "fileDownload",
-          "quoteSelected"
-        ]
+          "fileDownloadName",
+          "quoteSelected",
+          "downloaded"
+        ],
+        where: {
+          removed: false
+        }
       });
+
       let bi = null;
       if (
         req.userRol === "client" ||
@@ -243,6 +415,7 @@ module.exports = {
   getExternalEngines: async (req, res) => {
     try {
       const engines = await Engines.findAll();
+
       if (engines) {
         if (!req.userId) {
           const typeOfPermits = await TypeOfPermits.findOne({
@@ -290,6 +463,145 @@ module.exports = {
       });
     } catch (err) {
       res.status(500).send({
+        error: err
+      });
+    }
+  },
+
+  enginesByUser: async (req, res) => {
+    try {
+      const id = parseInt(req.userId);
+      const user = await User.findByPk(id);
+
+      if (user.rol === "user") {
+        const response = await externalApi.enginesByUser({ user_id: id });
+        const {
+          data: { user_engines }
+        } = response;
+
+        if (!user_engines) {
+          let data = {
+            allowedFiles,
+            process: [
+              {
+                id: 1,
+                name: "translation",
+                updatedAt: new Date(),
+                engines: []
+              }
+            ]
+          };
+          return res.status(200).send({ ...data });
+        } else {
+          let data = {
+            allowedFiles,
+            process: [
+              {
+                id: 1,
+                name: "translation",
+                updatedAt: new Date(),
+                engines: user_engines.map(item => {
+                  item.source = item.src;
+                  item.target = item.tgt;
+                  item.name = item.descr;
+                  delete item.src;
+                  delete item.tgt;
+                  delete item.descr;
+                  return item;
+                })
+              }
+            ]
+          };
+
+          return res.status(200).send({ ...data });
+        }
+      } else if (user.rol === "client") {
+        const response = await externalApi.enginesByClient({ client_id: id });
+        const {
+          data: { client_engines }
+        } = response;
+
+        if (!client_engines) {
+          let data = {
+            allowedFiles,
+            process: [
+              {
+                id: 1,
+                name: "translation",
+                updatedAt: new Date(),
+                engines: []
+              }
+            ]
+          };
+          return res.status(200).send({ ...data });
+        } else {
+          let data = {
+            allowedFiles,
+            process: [
+              {
+                id: 1,
+                name: "translation",
+                updatedAt: new Date(),
+                engines: client_engines.map(item => {
+                  item.source = item.src;
+                  item.target = item.tgt;
+                  item.name = item.descr;
+                  delete item.src;
+                  delete item.tgt;
+                  delete item.descr;
+                  return item;
+                })
+              }
+            ]
+          };
+
+          return res.status(200).send({ ...data });
+        }
+      } else {
+        const response = await externalApi.getEngines();
+        const {
+          data: { engines }
+        } = response;
+
+        if (!engines) {
+          let data = {
+            allowedFiles,
+            process: [
+              {
+                id: 1,
+                name: "translation",
+                updatedAt: new Date(),
+                engines: []
+              }
+            ]
+          };
+          return res.status(200).send({ ...data });
+        } else {
+          let data = {
+            allowedFiles,
+            process: [
+              {
+                id: 1,
+                name: "translation",
+                updatedAt: new Date(),
+                engines: engines.map(item => {
+                  item.source = item.src;
+                  item.target = item.tgt;
+                  item.name = item.descr;
+                  delete item.src;
+                  delete item.tgt;
+                  delete item.descr;
+                  return item;
+                })
+              }
+            ]
+          };
+
+          return res.status(200).send({ ...data });
+        }
+      }
+    } catch (err) {
+      res.status(500).json({
         error: err
       });
     }
@@ -347,8 +659,8 @@ module.exports = {
       const engineDomain = req.body.engine.domain;
       const engineSource = req.body.engine.source;
       const engineTarget = req.body.engine.target;
-
       const files = req.body.files;
+      const apikey = req.user.apikey;
 
       map(
         files,
@@ -365,7 +677,8 @@ module.exports = {
               engineId,
               fileName,
               fileType,
-              file
+              file,
+              apikey
             )
             .then(result => {
               const error = result.data.error;
@@ -433,6 +746,9 @@ module.exports = {
         }
       );
     } catch (error) {
+      console.log("\x1b[32m", "**************processFile*****************");
+      console.log(error.message);
+      console.log("\x1b[32m", "*******************************");
       return res.status(400).send({
         error: error
       });
@@ -441,22 +757,32 @@ module.exports = {
 
   quoteFile: async (req, res) => {
     try {
+      const {
+        processId,
+        processName,
+        engineId,
+        engineName,
+        engineDomain,
+        engineSource,
+        engineTarget
+      } = req.body;
+
       const username = req.userEmail;
-      const processId = req.body.process.id;
-      const processName = req.body.process.name;
-      const engineId = req.body.engine.id;
-      const engineName = req.body.engine.name;
-      const engineDomain = req.body.engine.domain;
-      const engineSource = req.body.engine.source;
-      const engineTarget = req.body.engine.target;
-      const files = req.body.files;
+      let files = [];
+      if (Array.isArray(req.files["files[]"])) {
+        files = req.files["files[]"];
+      } else {
+        files.push(req.files["files[]"]);
+      }
+
+      const apikey = req.user.rol !== "admin" ? req.user.apikey : "000000";
 
       map(
         files,
-        async item => {
-          const fileName = item.fileName;
-          const fileType = item.fileType;
-          const file = item.file.replace(`data:${fileType};base64,`, "");
+        async file => {
+          const fileName = file.name;
+          const fileType = file.mimetype;
+
           const process = await Process.create({
             fileName,
             // fileId,
@@ -472,68 +798,128 @@ module.exports = {
             email: username
           });
 
-          const quote = await externalApi.quoteFile(
-            username,
-            engineSource,
-            engineTarget,
-            engineId,
-            fileName,
-            fileType,
-            file
+          const folderName = moment().valueOf();
+          const pathFolder = Path.resolve(
+            __dirname,
+            `./../../uploads/${folderName}/`
           );
 
-          const error = quote.data.error;
-          const errorMessage = quote.data.errormessage;
-          const fileId = quote.data.fileId;
+          fs.mkdirSync(pathFolder);
+          const path = Path.resolve(
+            __dirname,
+            `./../../uploads/${folderName}/`,
+            fileName
+          );
 
-          if (error !== 0 && fileId && req.userId) {
-            const user = await User.findOne({
-              where: {
-                id: req.userId
-              }
-            });
-            let aux = null;
-            if (user.UserId) {
-              const client = await User.findOne({
+          const save = await saveFile(file, path);
+
+          if (save) {
+            // let form = new FormData();
+
+            let modestatus = req.user.typeOfUser === 1 ? 10 : 5;
+            if (req.user.rol === "admin") modestatus = 10;
+
+            // form.append("file", fs.createReadStream(path));
+            // form.append("title", fileName);
+            // form.append("engine", engineId);
+            // form.append("src", engineSource);
+            // form.append("tgt", engineTarget);
+            // form.append("apikey", apikey);
+            // form.append("processname", "PGWEB");
+            // form.append("username", username);
+            // form.append("modestatus", modestatus);
+            // form.append(
+            //   "notiflink",
+            //   "http://pgweb.pangeamt.com:3004/api/notification"
+            // );
+
+            let form = {
+              file: fs.createReadStream(path),
+              title: fileName,
+              engine: engineId,
+              src: engineSource,
+              tgt: engineTarget,
+              apikey: apikey,
+              processname: "PGWEB",
+              username: username,
+              modestatus: modestatus,
+              notiflink: "http://pgweb.pangeamt.com:3004/api/notification"
+            };
+
+            let body = await externalApi.sendfile(form);
+
+            const fileId = body.fileId;
+            if (fileId && req.userId) {
+              const user = await User.findOne({
                 where: {
-                  id: user.UserId
+                  id: req.userId
                 }
               });
-              if (client) {
-                aux = client.email;
-              }
-            }
-
-            await Process.update(
-              {
-                fileId,
-                client: aux
-              },
-              {
-                where: {
-                  id: process.id
+              let aux = null;
+              if (user.UserId) {
+                const client = await User.findOne({
+                  where: {
+                    id: user.UserId
+                  }
+                });
+                if (client) {
+                  aux = client.email;
                 }
               }
-            );
-            user.addProcess(process);
-
-            return true;
+              await Process.update(
+                {
+                  fileId,
+                  client: aux
+                },
+                {
+                  where: {
+                    id: process.id
+                  }
+                }
+              );
+              user.addProcess(process);
+              deleteFolderRecursive(pathFolder);
+              return true;
+            } else {
+              logsConsole({
+                message: errorMessage,
+                method: "quoteFile",
+                line: 887
+              });
+              throw new Error(errorMessage);
+            }
           } else {
-            throw new Error(errorMessage);
+            logsConsole({
+              message: "Error to save file",
+              method: "quoteFile",
+              line: 895
+            });
+            throw new Error("Error to save file");
           }
         },
-        err => {
+        async (err, result) => {
           if (err) {
+            logsConsole({
+              message: err.message,
+              method: "quoteFile",
+              line: 905
+            });
             return res.status(500).send({
               error: err
             });
+          } else {
+            return res.status(200).json({
+              data: "ok"
+            });
           }
-          return res.status(200).json({
-            data: "ok"
-          });
         }
       );
     } catch (error) {
+      logsConsole({
+        message: error.message,
+        method: "quoteFile",
+        line: 921
+      });
       return res.status(400).send({
         error: error
       });
@@ -544,10 +930,12 @@ module.exports = {
     try {
       const fileId = req.body.fileId;
       const quote = req.body.quote;
+      const apikey = req.user.apikey;
 
       let result = await externalApi.processFileAfterQuoteFile(
         fileId,
-        quote.optionid
+        quote.optionid,
+        apikey
       );
 
       await Process.update(
@@ -565,6 +953,12 @@ module.exports = {
         data: "ok"
       });
     } catch (error) {
+      console.log(
+        "\x1b[32m",
+        "**************processFileAfterQuoteFile*****************"
+      );
+      console.log(error.message);
+      console.log("\x1b[32m", "*******************************");
       return res.status(500).send({
         error: error
       });
@@ -575,95 +969,89 @@ module.exports = {
    *  Notificaciones desde el motor de Traduccion
    */
   notification: async (req, res) => {
-    console.log("\x1b[33m%s\x1b[0m", "*******************************");
-    console.log("\x1b[33m%s\x1b[0m", JSON.stringify(req.body));
-    console.log("\x1b[33m%s\x1b[0m", "*******************************");
+    try {
+      console.log("\x1b[33m%s\x1b[0m", "*******************************");
+      console.log("\x1b[33m%s\x1b[0m", JSON.stringify(req.body));
+      console.log("\x1b[33m%s\x1b[0m", "*******************************");
 
-    if (req.body.fileid && req.body.data) {
-      let type = _.lowerCase(getStatus(req.body.data.status));
-      type = _.replace(type, " ", "_");
-      type = _.replace(type, "/", "_");
-      console.log("\x1b[33m%s\x1b[0m", "NOTIFICATION", type);
-
-      let query = { status: type, uuid: uuidv4() };
-
-      if (req.body.data.status === 7) {
-        if (req.body.quotes.length) {
-          query["quotes"] = req.body.quotes;
-        } else {
-          delete query.status;
+      if (req.body.fileid && req.body.data) {
+        let apikey = req.body.data.apikey;
+        let type = _.lowerCase(getStatus(req.body.data.status));
+        type = _.replace(type, " ", "_");
+        type = _.replace(type, "/", "_");
+        let query = { status: type, uuid: uuidv4() };
+        if (req.body.data.status === 7) {
+          if (req.body.quotes.length) {
+            query["quotes"] = req.body.quotes;
+          } else {
+            delete query.status;
+          }
         }
-      }
-
-      try {
-        await Process.update(query, {
-          where: {
-            fileId: req.body.fileid
-          }
-        });
-
-        let process = await Process.findOne({
-          where: { fileId: req.body.fileid }
-        });
-
-        // let email = process.email;
-        // let freeUser = process.email ? true : false;
-
-        let noty = {
-          type: type,
-          data: {
-            fileId: req.body.fileid,
-            fileName: process.fileName,
-            userId: process.UserId,
-            email: process.email
-          }
-        };
-
-        let notification = await Notification.findOrCreate({
-          where: {
-            data: {
+        try {
+          await Process.update(query, {
+            where: {
               fileId: req.body.fileid
             }
-          },
-          defaults: noty
-        });
+          });
+          let process = await Process.findOne({
+            where: { fileId: req.body.fileid }
+          });
 
-        if (notification[1]) {
-          if (process.UserId) {
-            let user = await User.findOne({
-              where: { id: process.UserId }
-            });
-            email = user.email;
-            user.addNotifications(notification[0]);
-          }
-        } else {
-          await Notification.update(
-            {
-              type: type
+          let noty = {
+            type: type,
+            data: {
+              fileId: req.body.fileid,
+              fileName: process.fileName,
+              userId: process.UserId,
+              email: process.email
+            }
+          };
+          let notification = await Notification.findOrCreate({
+            where: {
+              data: {
+                fileId: req.body.fileid
+              }
             },
-            {
-              where: {
-                data: {
-                  fileId: req.body.fileid
+            defaults: noty
+          });
+          if (notification[1]) {
+            if (process.UserId) {
+              let user = await User.findOne({
+                where: { id: process.UserId }
+              });
+              email = user.email;
+              user.addNotifications(notification[0]);
+            }
+          } else {
+            await Notification.update(
+              {
+                type: type
+              },
+              {
+                where: {
+                  data: {
+                    fileId: req.body.fileid
+                  }
                 }
               }
-            }
-          );
-        }
+            );
+          }
+          const status = parseInt(req.body.data.status);
+          if (status === 100) {
+            const response = await downloadFile(
+              process.fileId,
+              apikey,
+              process.fileName
+            );
 
-        const status = parseInt(req.body.data.status);
-
-        if (status === 100) {
-          const response = await externalApi.retrievefile(process.fileId);
-          if (response.data.success && parseInt(response.data.status) >= 110) {
-            type = _.lowerCase(getStatus(parseInt(response.data.status)));
+            type = _.lowerCase(getStatus(parseInt(status)));
             type = _.replace(type, " ", "_");
             type = _.replace(type, "/", "_");
-
             await Process.update(
               {
                 status: type,
-                fileDownload: response.data.data
+                fileDownloadFolder: response.path,
+                fileDownloadName: response.filename
               },
               {
                 where: {
@@ -672,35 +1060,30 @@ module.exports = {
               }
             );
           }
+
+          return res.status(200).send({
+            data: {
+              fileId: process.fileId,
+              apiKey
+            }
+          });
+        } catch (err) {
+          console.log("\x1b[32m", "*******************************");
+          console.log(err.message);
+          console.log("\x1b[32m", "*******************************");
+          return res.status(500).send({
+            error: err
+          });
         }
-
-        // if (freeUser) {
-        //   if (email) {
-        //     //Envio de Email Usuario Casual
-        //     mailer.main(email, type, process.uuid, freeUser);
-        //   } else {
-        //     //Envio de Email Usuario Registrado
-        //     let user = await User.findOne({ where: { id: process.UserId } });
-        //     let email = user.email;
-        //     mailer.main(email, type, process.uuid, freeUser);
-        //   }
-        // }
-
-        return res.status(200).send({
-          data: {
-            fileId: process.fileId,
-            apiKey
-          }
-        });
-      } catch (err) {
-        return res.status(500).send({
-          error: err
+      } else {
+        return res.status(400).send({
+          error: "Bad Request"
         });
       }
-    } else {
-      return res.status(400).send({
-        error: "Bad Request"
-      });
+    } catch (err) {
+      console.log("\x1b[32m", "*******************************");
+      console.log(err.message);
+      console.log("\x1b[32m", "*******************************");
     }
   },
 
@@ -742,6 +1125,7 @@ module.exports = {
   },
 
   return: async (req, res) => {
+    req.freeUser = false;
     return paypal.execute(req, res);
   },
 
@@ -757,5 +1141,226 @@ module.exports = {
   return_free: async (req, res) => {
     req.freeUser = true;
     return paypal.execute(req, res);
+  },
+
+  setDownload: async (req, res) => {
+    try {
+      const id = req.body.id;
+      if (id) {
+        await Process.update(
+          {
+            downloaded: true
+          },
+          {
+            where: {
+              id: id
+            }
+          }
+        );
+      } else {
+        return res.status(400).send({
+          error: "Bad Request"
+        });
+      }
+
+      return res.status(200).send({ data: "ok" });
+    } catch (error) {
+      return res.status(500).send({
+        error: error
+      });
+    }
+  },
+
+  download: async (req, res) => {
+    try {
+      const id = req.query.id;
+      if (id) {
+        const process = await Process.findByPk(id);
+
+        await Process.update(
+          {
+            downloaded: true
+          },
+          {
+            where: {
+              id: id
+            }
+          }
+        );
+
+        res.download(process.fileDownloadFolder); // Set disposition and send it.
+      } else {
+        return res.status(400).send({
+          error: "Bad Request"
+        });
+      }
+    } catch (error) {
+      return res.status(500).send({
+        error: error
+      });
+    }
+  },
+
+  removed: async (req, res) => {
+    try {
+      const id = req.body.id;
+      if (id) {
+        await Process.update(
+          {
+            removed: true
+          },
+          {
+            where: {
+              id: id
+            }
+          }
+        );
+      } else {
+        return res.status(400).send({
+          error: "Bad Request"
+        });
+      }
+
+      return res.status(200).send({ data: "ok" });
+    } catch (error) {
+      return res.status(500).send({
+        error: error
+      });
+    }
+  },
+
+  getStats: async (req, res) => {
+    try {
+      let userData = null;
+
+      let start, end;
+      if (req.body.period === "month") {
+        start = moment(req.body.from_date).format("YYYY.MM");
+        end = moment(req.body.to_date).format("YYYY.MM");
+      } else {
+        start = moment(req.body.from_date).format("YYYY.MM.DD");
+        end = moment(req.body.to_date).format("YYYY.MM.DD");
+      }
+      let data;
+      if (
+        req.body.userId === null &&
+        req.body.apikey === null &&
+        req.user.rol === "admin"
+      ) {
+        data = {
+          period: req.body.period,
+          from_date: start,
+          to_date: end
+        };
+      } else {
+        data = {
+          userId: req.body.userId || req.userId,
+          apikey: req.body.apikey,
+          period: req.body.period,
+          from_date: start,
+          to_date: end
+        };
+        if (!data.apikey) {
+          const user = await User.findByPk(data.userId);
+          userData = {
+            email: user.email,
+            fullName: user.fullName,
+            rol: user.rol
+          };
+          data.apikey = user.apikey;
+        }
+      }
+
+      const response = await externalApi.getstats(data);
+      const {
+        data: { Stats, FileStats, FileList }
+      } = response;
+
+      const apikeysStats = Object.keys(Stats);
+      const query = apikeysStats.map(item => {
+        return { apikey: item };
+      });
+      // const apikeysFileStats = Object.keys(FileStats);
+      const users = await User.findAll({
+        where: {
+          [Op.or]: query
+        }
+      });
+
+      const total = [];
+      let tt = {
+        user: "Total",
+        characters: 0,
+        segments: 0,
+        words: 0,
+        pages: 0,
+        files: 0
+      };
+
+      users.map(item => {
+        let a = {};
+        a[item.apikey] = Stats[item.apikey] ? Stats[item.apikey] : [];
+        let b = {};
+        b[item.apikey] = FileStats[item.apikey] ? FileStats[item.apikey] : [];
+        const datasourceA = formatStatDataSource(a);
+        const datasourceB = formatFileDataSource(b);
+
+        let tmp = {
+          user: `${item.email} / ${item.apikey}`,
+          email: item.email,
+          apikey: item.apikey,
+          characters: datasourceA[0].characters,
+          segments: datasourceA[0].segments,
+          words: datasourceA[0].words,
+          pages: datasourceB[0].pages,
+          files: datasourceB[0].files,
+          fileList: FileList[item.apikey]
+        };
+        // tt.characters = tt.characters + datasourceA[0].characters;
+        // tt.segments = tt.segments + datasourceA[0].segments;
+        // tt.words = tt.words + datasourceA[0].words;
+        // tt.pages = tt.pages + datasourceB[0].pages;
+        // tt.files = tt.files + datasourceB[0].files;
+
+        total.push(tmp);
+      });
+      // total.push(tt);
+      if (Stats) {
+        return res
+          .status(200)
+          .send({ Stats, FileStats, user: userData, users: total });
+      } else {
+        res.status(500).json({
+          error: { message: "Bad Request" }
+        });
+      }
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
+  },
+
+  translate: async (req, res) => {
+    try {
+      const engine = req.body.engine;
+      const form = {
+        src: engine.source,
+        tgt: engine.target,
+        apikey: req.user.apikey,
+        engine: engine.id,
+        text: [req.body.text]
+      };
+
+      //2019.09.13
+      const response = await externalApi.translate(form);
+      const { data } = response;
+
+      return res.status(200).send({ data });
+    } catch (err) {
+      res.status(500).json({
+        error: err
+      });
+    }
   }
 };

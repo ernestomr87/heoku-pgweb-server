@@ -2,9 +2,13 @@ const Sequelize = require("sequelize");
 
 const Op = Sequelize.Op;
 const bcrypt = require("bcryptjs");
-
+const uuidv4 = require("uuid/v4");
 const moment = require("moment");
 const map = require("async/map");
+
+const externalApi = require("../external_api/api");
+
+const API_KEY = require(`./../../config/${process.env.NODE_APP}.json`).apiKey;
 
 const db = require("./../../db/models");
 const User = db.User;
@@ -14,7 +18,16 @@ const TypeOfPermits = db.TypeOfPermits;
 exports.listAll = async (req, res) => {
   try {
     let query = {
-      attributes: ["id", "fullName", "email", "rol", "typeOfUser", "UserId"],
+      attributes: [
+        "id",
+        "fullName",
+        "email",
+        "apikey",
+        "rol",
+        "typeOfUser",
+        "UserId",
+        "lastLogin"
+      ],
       include: [
         {
           model: TypeOfPermits
@@ -25,10 +38,14 @@ exports.listAll = async (req, res) => {
           [Op.ne]: req.userId
         },
         remove: false
-      }
+      },
+      order: [["createdAt", "DESC"]]
     };
     if (req.userRol === "client") {
       query.where.userId = req.userId;
+    }
+    if (req.userRol === "admin") {
+      delete query.where.id;
     }
     const users = await User.findAll(query);
 
@@ -92,16 +109,25 @@ exports.get = async (req, res) => {
 };
 exports.remove = async (req, res) => {
   try {
-    await User.update(
-      {
-        remove: true
-      },
-      {
-        where: {
-          id: req.body.id
-        }
+    let user = await User.findOne({
+      where: {
+        id: req.body.id
       }
-    );
+    });
+
+    user.remove = true;
+    await user.save();
+    const data = {
+      id: user.id
+    };
+
+    if (user.rol === "client") {
+      await externalApi.delClient(data);
+    }
+    if (user.rol === "user") {
+      await externalApi.delUser(data);
+    }
+
     return res.status(200).send({
       ok: "Action success"
     });
@@ -116,7 +142,8 @@ exports.create = async (req, res) => {
       email: req.body.email,
       password: bcrypt.hashSync(req.body.password, 8),
       rol: req.body.rol || "user",
-      typeOfUser: req.body.typeOfUser
+      typeOfUser: req.body.typeOfUser,
+      apikey: req.body.apikey
     });
 
     let typeOfPermits = await TypeOfPermits.findOne({
@@ -129,10 +156,11 @@ exports.create = async (req, res) => {
     });
 
     user.setTypeOfPermit(typeOfPermits);
-    if (req.userRol === "client") {
+    if (req.userRol === "client" || req.body.client) {
+      let c = req.body.client || req.userId;
       let client = await User.findOne({
         where: {
-          id: req.userId
+          id: c
         },
         include: [
           {
@@ -144,6 +172,23 @@ exports.create = async (req, res) => {
       users.push(user);
       await client.setUsers(users);
     }
+
+    if (user.rol === "client") {
+      const data = {
+        id: user.id,
+        APIKey: user.apikey
+      };
+      await externalApi.addClient(data);
+    }
+    if (user.rol === "user") {
+      const data = {
+        id: user.id,
+        APIKey: user.apikey,
+        client_id: req.userId
+      };
+      await externalApi.addUser(data);
+    }
+
     return res.status(200).send({
       ok: "Action success"
     });
@@ -166,11 +211,22 @@ exports.update = async (req, res) => {
         }
       }
     );
+    await User.update(
+      {
+        typeOfUser: req.body.typeOfUser
+      },
+      {
+        where: {
+          userId: req.body.id
+        }
+      }
+    );
     let user = await User.findOne({
       where: {
         id: req.body.id
       }
     });
+
     user.setTypeOfPermit(req.body.typeOfPermits);
 
     return res.status(200).send({
@@ -822,5 +878,66 @@ exports.ownerUserDashboard = async (req, res) => {
     return res.status(500).send({
       error: err
     });
+  }
+};
+
+exports.listCorp = async (req, res) => {
+  try {
+    if (req.body.apiKey === API_KEY) {
+      const users = await User.findAll({
+        where: {
+          [Op.or]: [{ rol: "user" }, { rol: "client" }]
+        },
+        attributes: ["id", "apikey", "UserId"]
+      });
+
+      let array = [];
+
+      users.map(item => {
+        let data = {
+          id: item.id,
+          APIKey: item.apikey
+        };
+        if (item.UserId) {
+          data["client_id"] = item.UserId;
+        }
+
+        array.push(data);
+      });
+
+      return res.status(200).send({
+        users: array
+      });
+    } else {
+      return res.status(403).send("Permissions Required!");
+    }
+  } catch (err) {
+    return res.status(500).send({
+      error: err
+    });
+  }
+};
+
+exports.updateApikey = async () => {
+  try {
+    const users = await User.findAll({});
+
+    map(
+      users,
+      async item => {
+        item.apikey = uuidv4();
+        await item.save();
+        return item;
+      },
+      async (err, results) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log("success");
+        }
+      }
+    );
+  } catch (error) {
+    console.log(error);
   }
 };

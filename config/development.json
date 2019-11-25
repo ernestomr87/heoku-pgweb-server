@@ -7,7 +7,7 @@
   "db": {
     "username": "root",
     "password": "epastor",
-    "database": "pgweb_authenticity",
+    "database": "pgweb_pangeanic",
     "database_dashboard": "relay",
     "host": "prod.pangeamt.com",
     "dialect": "mysql"
@@ -22,6 +22,6 @@
       "pass": "santac1ara"
     }
   },
-  "allowedFiles": "docx|xlsx|pptx|pdf|odt|odp",
+  "allowedFiles": "txt|docx|xlsx|pptx|pdf|odt|odp",
   "secret": "pangeamt-super-secret-key"
 }
