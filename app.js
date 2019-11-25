@@ -59,7 +59,7 @@ if (env === "production") {
   //   res.sendFile(path.join(__dirname, "./build", "index.html"));
   // });
   app.get("*", function(req, res) {
-    res.redirect(301, "http://pgweb.pangeamt.com");
+    res.redirect(301, "http://13.56.248.252:3004");
   });
 }
 
