@@ -8,6 +8,9 @@ var fileUpload = require("express-fileupload");
 var morgan = require("morgan");
 var winston = require("./config/winston");
 
+const APP_CONFIG = require(`./config/${process.env.NODE_APP}.json`);
+const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
+
 app.use(morgan("combined", { stream: winston.stream }));
 app.use(
   fileUpload({
@@ -59,7 +62,7 @@ if (env === "production") {
   //   res.sendFile(path.join(__dirname, "./build", "index.html"));
   // });
   app.get("*", function(req, res) {
-    res.redirect(301, "http://13.56.248.252:3004");
+    res.redirect(301, BASE_URL);
   });
 }
 
