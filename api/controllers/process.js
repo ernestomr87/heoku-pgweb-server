@@ -19,6 +19,9 @@ const Engines = db.Engines;
 const _ = require("lodash");
 const map = require("async/mapSeries");
 
+const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
+const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
+
 const mailer = require("./../util/mailer");
 const paypal = require("./../util/paypal");
 
@@ -117,10 +120,7 @@ const consultAndCreate = async (res, data) => {
         form.append("processname", "PGWEB");
         form.append("username", username);
         form.append("modestatus", 5);
-        form.append(
-          "notiflink",
-          "http://pgweb.pangeamt.com:3004/api/notification"
-        );
+        form.append("notiflink", `${BASE_URL}/api/notification`);
 
         let body = await externalApi.sendfile(form);
 
@@ -843,7 +843,7 @@ module.exports = {
               processname: "PGWEB",
               username: username,
               modestatus: modestatus,
-              notiflink: "http://pgweb.pangeamt.com:3004/api/notification"
+              notiflink: `${BASE_URL}/api/notification`
             };
 
             let body = await externalApi.sendfile(form);

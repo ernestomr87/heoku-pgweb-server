@@ -14,6 +14,9 @@ const externalApi = require("../external_api/api");
 
 const { saveFile, deleteFolderRecursive } = require("./../util/functions");
 
+const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
+const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
+
 module.exports = {
   getModels: async (req, res) => {
     try {
@@ -188,10 +191,7 @@ module.exports = {
             form.append("src", src);
             form.append("tgt", tgt);
 
-            form.append(
-              "notiflink",
-              "http://pgweb.pangeamt.com:3004/api/notification/models"
-            );
+            form.append("notiflink", `${BASE_URL}/api/notification/models`);
 
             let body = await externalApi.sendfile(form);
 
