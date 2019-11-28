@@ -12,7 +12,11 @@ const map = require("async/mapSeries");
 
 const externalApi = require("../external_api/api");
 
-const { saveFileV2, deleteFolderRecursive } = require("./../util/functions");
+const {
+  saveFileV2,
+  deleteFolderRecursive,
+  logsConsole
+} = require("./../util/functions");
 
 const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
 const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
@@ -225,6 +229,11 @@ module.exports = {
         err => {
           deleteFolderRecursive(pathFolder);
           if (err) {
+            logsConsole({
+              message: err.message,
+              method: "train",
+              line: 235
+            });
             return res.status(500).send({
               error: err
             });
@@ -236,6 +245,11 @@ module.exports = {
         }
       );
     } catch (err) {
+      logsConsole({
+        message: err.message,
+        method: "train",
+        line: 251
+      });
       res.status(500).json({
         error: err
       });
