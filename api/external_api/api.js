@@ -113,6 +113,13 @@ module.exports = {
       url: `${API_ENGINE}download?fileid=${fileid}&apikey=${apikey}`
     });
   },
+  sendfileV2: function(form) {
+    return axios
+      .create({
+        headers: form.getHeaders()
+      })
+      .post(`${API_ENGINE}sendfile`, form);
+  },
   sendfile: function(form) {
     followRedirects.maxRedirects = 10;
     followRedirects.maxBodyLength = 500 * 1024 * 1024; // 500 MB

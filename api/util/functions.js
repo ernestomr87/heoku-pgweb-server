@@ -50,6 +50,31 @@ const saveFile = async (file, path) => {
   });
 };
 
+const saveFileV2 = async (file, folderName, fileName, fileType) => {
+  try {
+    let ff = file.split(";base64,").pop();
+    let buff = Buffer.from(ff, "base64");
+
+    return new Promise((resolve, reject) => {
+      fs.writeFile(
+        `uploads/${folderName}/${fileName}`,
+        buff,
+        "base64",
+        async err => {
+          if (err) {
+            return reject(err);
+          } else {
+            return resolve(true);
+          }
+        }
+      );
+    });
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
+
 const deleteFolderRecursive = async path => {
   try {
     if (fs.existsSync(path)) {
@@ -80,13 +105,10 @@ const logsConsole = data => {
   console.log("\x1b[33m%s\x1b[0m", ` ${JSON.stringify(line)}`);
   console.log("\x1b[33m%s\x1b[0m", "*************************************");
   console.log("\n");
-  
-  winston.error(`message: ${message}`); 
-  winston.error(`method: ${method}`); 
-  winston.error(`line: ${line}`); 
 
-
-
+  winston.error(`message: ${message}`);
+  winston.error(`method: ${method}`);
+  winston.error(`line: ${line}`);
 
   // logger.info('What rolls down stairs');
   // logger.info('alone or in pairs,');
@@ -100,5 +122,6 @@ module.exports = {
   getStatus,
   saveFile,
   deleteFolderRecursive,
-  logsConsole
+  logsConsole,
+  saveFileV2
 };

@@ -8,11 +8,11 @@ const FormData = require("form-data");
 const fs = require("fs");
 const Path = require("path");
 const _ = require("lodash");
-const map = require("async/map");
+const map = require("async/mapSeries");
 
 const externalApi = require("../external_api/api");
 
-const { saveFile, deleteFolderRecursive } = require("./../util/functions");
+const { saveFileV2, deleteFolderRecursive } = require("./../util/functions");
 
 const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
 const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
@@ -174,7 +174,7 @@ module.exports = {
             fileName
           );
 
-          const save = await saveFile(file, folderName, fileName, fileType);
+          const save = await saveFileV2(file, folderName, fileName, fileType);
 
           if (save) {
             let form = new FormData();
@@ -193,7 +193,7 @@ module.exports = {
 
             form.append("notiflink", `${BASE_URL}/api/notification/models`);
 
-            let body = await externalApi.sendfile(form);
+            let body = await externalApi.sendfileV2(form);
 
             const fileId = body.data.fileId;
             if (fileId && req.userId) {

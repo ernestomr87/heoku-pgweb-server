@@ -31,3 +31,4 @@ package-lock.json
 
 /uploads
 /build
+/logs/app.log
