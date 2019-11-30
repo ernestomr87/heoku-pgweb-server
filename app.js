@@ -62,7 +62,8 @@ if (env === "production") {
   //   res.sendFile(path.join(__dirname, "./build", "index.html"));
   // });
   app.get("*", function(req, res) {
-    res.redirect(301, BASE_URL);
+    // res.redirect(301, BASE_URL);
+    res.send("PGWEB REST API running in production mode");
   });
 }
 
