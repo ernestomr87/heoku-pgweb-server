@@ -1,7 +1,7 @@
 {
   "enginesApi": "http://prod.pangeamt.com:8080/PGFile/v1/",
   "enginesApiNexRelay": "http://prod.pangeamt.com:8080/NexRelay/v1/",
-  "host": "https://pgweb2.pangeamt.com",
+  "host": "https://pgweb2.pangeamt.com:3004",
   "port": 3004,
   "apiKey": "cOrtesvalenc1anas",
   "db": {
