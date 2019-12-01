@@ -7,7 +7,7 @@
   "db": {
     "username": "root",
     "password": "epastor",
-    "database": "dev_pgweb_pangeanic",
+    "database": "pgweb_pangeanic",
     "host": "prod.pangeamt.com",
     "dialect": "mysql"
   },
