@@ -4,7 +4,7 @@ const request = require("request");
 const followRedirects = require("follow-redirects");
 
 const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
-const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
+const BASE_URL = `${APP_CONFIG.host}`;
 const API_KEY = APP_CONFIG.apiKey;
 const API_ENGINE = APP_CONFIG.enginesApi;
 const API_ENGINE_NEX_RELAY = APP_CONFIG.enginesApiNexRelay;

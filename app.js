@@ -9,7 +9,7 @@ var morgan = require("morgan");
 var winston = require("./config/winston");
 
 const APP_CONFIG = require(`./config/${process.env.NODE_APP}.json`);
-const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
+const BASE_URL = `${APP_CONFIG.host}`;
 
 app.use(morgan("combined", { stream: winston.stream }));
 app.use(

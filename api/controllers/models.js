@@ -19,7 +19,7 @@ const {
 } = require("./../util/functions");
 
 const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
-const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
+const BASE_URL = `${APP_CONFIG.host}`;
 
 module.exports = {
   getModels: async (req, res) => {

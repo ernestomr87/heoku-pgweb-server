@@ -20,7 +20,7 @@ const _ = require("lodash");
 const map = require("async/mapSeries");
 
 const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
-const BASE_URL = `${APP_CONFIG.host}:${APP_CONFIG.port}`;
+const BASE_URL = `${APP_CONFIG.host}`;
 
 const mailer = require("./../util/mailer");
 const paypal = require("./../util/paypal");
