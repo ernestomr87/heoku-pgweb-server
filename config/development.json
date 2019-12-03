@@ -1,13 +1,13 @@
 {
   "enginesApi": "http://prod.pangeamt.com:8080/PGFile/v1/",
   "enginesApiNexRelay": "http://prod.pangeamt.com:8080/NexRelay/v1/",
-  "host": "https://pgweb2.pangeamt.com:3004",
+  "host": "http://pgweb2test.pangeamt.com",
   "port": 3004,
   "apiKey": "cOrtesvalenc1anas",
   "db": {
     "username": "root",
     "password": "epastor",
-    "database": "dev_pgweb_pangeanic",
+    "database": "dev_pgweb",
     "host": "prod.pangeamt.com",
     "dialect": "mysql"
   },

@@ -39,10 +39,10 @@ app.use(cors());
 
 app.use("/", index);
 
-// const db = require('./db/models');
-// db.sequelize.sync({ force: true }).then(() => {
-//   console.log('Drop and Resync with { force: true }');
-// });
+const db = require('./db/models');
+db.sequelize.sync({ force: true }).then(() => {
+  console.log('Drop and Resync with { force: true }');
+});
 
 var env = process.env.NODE_ENV || "production";
 
@@ -54,24 +54,9 @@ app.use(
   })
 );
 
-if (env === "production") {
-  // // Serve any static files
-  // app.use(express.static(path.join(__dirname, "./build")));
-  // // Handle React routing, return all requests to React app
-  // app.get("*", function(req, res) {
-  //   res.sendFile(path.join(__dirname, "./build", "index.html"));
-  // });
-  app.get("*", function(req, res) {
-    // res.redirect(301, BASE_URL);
-    res.send("PGWEB REST API running in production mode");
-  });
-}
-
-if (env === "development") {
-  app.get("/*", function(req, res) {
-    res.send("REST API running in development mode");
-  });
-}
+app.get("/*", function(req, res) {
+  res.send("REST API running in " + env + " mode");
+});
 
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
