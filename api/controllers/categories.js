@@ -9,9 +9,7 @@ module.exports = {
     try {
       const doc = await Category.findAll();
 
-      return res.status(200).send({
-        data: doc
-      });
+      return res.status(200).send(doc);
     } catch (err) {
       logsConsole({
         message: err.message,

@@ -1,27 +1,26 @@
 {
-    "enginesApi": "http://prod.pangeamt.com:8080/PGFile/v1/",
-    "enginesApiNexRelay": "http://prod.pangeamt.com:8080/NexRelay/v1/",
-    "host": "http://13.56.248.252",
-    "port": 3004,
-    "apiKey": "cOrtesvalenc1anas",
-    "db": {
-      "username": "root",
-      "password": "epastor",
-      "database": "dev_pgweb_pangeanic",
-      "host": "prod.pangeamt.com",
-      "dialect": "mysql"
-    },
-    "mailer": {
-      "host": "smtp.pangeanic.com",
-      "port": 587,
-      "tls": { "rejectUnauthorized": false },
-      "secure": false,
-      "auth": {
-        "user": "pgweb@pangeanic.com",
-        "pass": "santac1ara"
-      }
-    },
-    "allowedFiles": "txt|docx|xlsx|pptx|pdf|odt|odp",
-    "secret": "pangeamt-super-secret-key"
-  }
-  
+  "enginesApi": "http://prod.pangeamt.com:8080/PGFile/v1/",
+  "enginesApiNexRelay": "http://prod.pangeamt.com:8080/NexRelay/v1/",
+  "host": "http://13.56.248.252:3004",
+  "port": 3004,
+  "apiKey": "cOrtesvalenc1anas",
+  "db": {
+    "username": "root",
+    "password": "epastor",
+    "database": "dev_pgweb_pangeanic",
+    "host": "prod.pangeamt.com",
+    "dialect": "mysql"
+  },
+  "mailer": {
+    "host": "smtp.pangeanic.com",
+    "port": 587,
+    "tls": { "rejectUnauthorized": false },
+    "secure": false,
+    "auth": {
+      "user": "pgweb@pangeanic.com",
+      "pass": "santac1ara"
+    }
+  },
+  "allowedFiles": "txt|docx|xlsx|pptx|pdf|odt|odp",
+  "secret": "pangeamt-super-secret-key"
+}

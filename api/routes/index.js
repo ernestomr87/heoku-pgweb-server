@@ -125,18 +125,22 @@ router.post("/api/billing", [verifyToken], billing.add);
 router.put("/api/billing", [verifyToken], billing.edit);
 
 //SUSCRIPTIONS INFO
-router.get("/api/suscriptions", [isAdmin], suscriptions.list);
-router.get("/api/suscriptions/:id", [isAdmin], suscriptions.get);
-router.post("/api/suscriptions", [isAdmin], suscriptions.add);
-router.put("/api/suscriptions", [isAdmin], suscriptions.save);
-router.delete("/api/suscriptions/:id", [isAdmin], suscriptions.remove);
+router.get("/api/suscriptions", [verifyToken, isAdmin], suscriptions.list);
+router.get("/api/suscriptions/:id", [verifyToken, isAdmin], suscriptions.get);
+router.post("/api/suscriptions", [verifyToken, isAdmin], suscriptions.add);
+router.put("/api/suscriptions", [verifyToken, isAdmin], suscriptions.save);
+router.delete(
+  "/api/suscriptions/:id",
+  [verifyToken, isAdmin],
+  suscriptions.remove
+);
 
 //CATEGORIES INFO
-router.get("/api/categories", [isAdmin], categories.list);
-router.get("/api/categories/:id", [isAdmin], categories.get);
-router.post("/api/categories", [isAdmin], categories.add);
-router.put("/api/categories", [isAdmin], categories.save);
-router.delete("/api/categories/:id", [isAdmin], categories.remove);
+router.get("/api/categories", [verifyToken, isAdmin], categories.list);
+router.get("/api/categories/:id", [verifyToken, isAdmin], categories.get);
+router.post("/api/categories", [verifyToken, isAdmin], categories.add);
+router.put("/api/categories", [verifyToken, isAdmin], categories.save);
+router.delete("/api/categories/:id", [verifyToken, isAdmin], categories.remove);
 
 //PAYMENTS
 router.post("/api/payment/pay", process.pay);
