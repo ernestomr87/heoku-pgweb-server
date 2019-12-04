@@ -20,6 +20,8 @@ let nodes = controllers.nodes;
 let models = controllers.models;
 let eds = controllers.eds;
 let engines = controllers.engines;
+let suscriptions = controllers.suscriptions;
+let categories = controllers.categories;
 
 const router = express.Router();
 
@@ -121,6 +123,20 @@ router.put("/api/email", configuration.setEmailNotification);
 router.get("/api/billing", [verifyToken], billing.get);
 router.post("/api/billing", [verifyToken], billing.add);
 router.put("/api/billing", [verifyToken], billing.edit);
+
+//SUSCRIPTIONS INFO
+router.get("/api/suscriptions", [isAdmin], suscriptions.list);
+router.get("/api/suscriptions/:id", [isAdmin], suscriptions.get);
+router.post("/api/suscriptions", [isAdmin], suscriptions.add);
+router.put("/api/suscriptions", [isAdmin], suscriptions.save);
+router.delete("/api/suscriptions/:id", [isAdmin], suscriptions.remove);
+
+//CATEGORIES INFO
+router.get("/api/categories", [isAdmin], categories.list);
+router.get("/api/categories/:id", [isAdmin], categories.get);
+router.post("/api/categories", [isAdmin], categories.add);
+router.put("/api/categories", [isAdmin], categories.save);
+router.delete("/api/categories/:id", [isAdmin], categories.remove);
 
 //PAYMENTS
 router.post("/api/payment/pay", process.pay);

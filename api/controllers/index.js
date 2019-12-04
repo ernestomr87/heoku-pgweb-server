@@ -10,6 +10,8 @@ const nodes = require("./nodes");
 const models = require("./models");
 const eds = require("./eds");
 const engines = require("./engines");
+const suscriptions = require("./suscriptions");
+const categories = require("./categories");
 
 module.exports = {
   auth,
@@ -21,5 +23,7 @@ module.exports = {
   nodes,
   models,
   eds,
-  engines
+  engines,
+  suscriptions,
+  categories
 };
