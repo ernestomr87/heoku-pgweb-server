@@ -7,7 +7,11 @@ const { logsConsole } = require("./../util/functions");
 module.exports = {
   list: async (req, res) => {
     try {
-      const doc = await Category.findAll();
+      const doc = await Category.findAll({
+        where: {
+          remove: false
+        }
+      });
 
       return res.status(200).send(doc);
     } catch (err) {
