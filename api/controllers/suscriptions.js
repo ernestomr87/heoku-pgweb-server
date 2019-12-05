@@ -7,11 +7,13 @@ const { logsConsole } = require("./../util/functions");
 module.exports = {
   list: async (req, res) => {
     try {
-      const doc = await SubscriptionType.findAll();
-
-      return res.status(200).send({
-        data: doc
+      const doc = await SubscriptionType.findAll({
+        where: {
+          remove: false
+        }
       });
+
+      return res.status(200).send(doc);
     } catch (err) {
       logsConsole({
         message: err.message,
@@ -45,6 +47,7 @@ module.exports = {
     try {
       const {
         title,
+        CategoryId,
         pages,
         freePages,
         price,
@@ -62,6 +65,7 @@ module.exports = {
 
       let doc = await SubscriptionType.create({
         title,
+        CategoryId,
         pages,
         freePages,
         price,
@@ -98,6 +102,7 @@ module.exports = {
       const {
         id,
         title,
+        CategoryId,
         pages,
         freePages,
         price,
@@ -116,6 +121,7 @@ module.exports = {
       await SubscriptionType.update(
         {
           title,
+          CategoryId,
           pages,
           freePages,
           price,
