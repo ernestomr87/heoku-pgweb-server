@@ -59,6 +59,7 @@ module.exports = {
         maxPrivateInstances,
         maxUsers,
         maxClones,
+        canUsePGB,
         canTrain,
         canUseApi
       } = req.body;
@@ -77,6 +78,7 @@ module.exports = {
         maxPrivateInstances,
         maxUsers,
         maxClones,
+        canUsePGB,
         canTrain,
         canUseApi
       });
@@ -114,6 +116,7 @@ module.exports = {
         maxPrivateInstances,
         maxUsers,
         maxClones,
+        canUsePGB,
         canTrain,
         canUseApi
       } = req.body;
@@ -133,6 +136,7 @@ module.exports = {
           maxPrivateInstances,
           maxUsers,
           maxClones,
+          canUsePGB,
           canTrain,
           canUseApi
         },

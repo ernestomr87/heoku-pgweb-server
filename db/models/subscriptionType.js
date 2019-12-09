@@ -23,6 +23,7 @@ module.exports = (sequelize, DataTypes) => {
       maxClones: DataTypes.INTEGER,
       canTrain: DataTypes.BOOLEAN,
       canUseApi: DataTypes.BOOLEAN,
+      canUsePGB: DataTypes.BOOLEAN,
       remove: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
