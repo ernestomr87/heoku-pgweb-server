@@ -146,6 +146,7 @@ module.exports = {
       const model = req.body.model;
       const src = req.body.src;
       const tgt = req.body.tgt;
+      const aggressivity = req.body.aggressivity;
       const apikey = req.user.apikey;
       const username = req.user.email;
 
@@ -194,6 +195,7 @@ module.exports = {
 
             form.append("src", src);
             form.append("tgt", tgt);
+            form.append("aggressivity", aggressivity);
 
             form.append("notiflink", `${BASE_URL}/api/notification/models`);
 
