@@ -9,13 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       price: DataTypes.FLOAT,
       minPrice: DataTypes.FLOAT,
       pricePerAdditionalPage: DataTypes.FLOAT,
-      period: DataTypes.ENUM(
-        "month",
-        "quarter",
-        "6month",
-        "annual",
-        "biannual"
-      ),
+      period: DataTypes.INTEGER,
       freeDays: DataTypes.INTEGER,
       maxSharedEngines: DataTypes.INTEGER,
       maxPrivateInstances: DataTypes.INTEGER,
