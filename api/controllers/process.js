@@ -17,6 +17,7 @@ const BillingInformation = db.BillingInformation;
 const Engines = db.Engines;
 
 const _ = require("lodash");
+
 const map = require("async/mapSeries");
 
 const APP_CONFIG = require(`./../../config/${process.env.NODE_APP}.json`);
@@ -206,8 +207,8 @@ const formatStatDataSource = data => {
           if (akey === key) {
             flag = true;
             item[akey].c = item[akey].c + aux[key].c;
-            item[akey].s = item[akey].c + aux[key].s;
-            item[akey].w = item[akey].c + aux[key].w;
+            item[akey].s = item[akey].s + aux[key].s;
+            item[akey].w = item[akey].w + aux[key].w;
           }
         });
         if (!flag) {
@@ -254,9 +255,8 @@ const formatFileDataSource = data => {
             let akey = Object.keys(item)[0];
             if (akey === key) {
               flag = true;
-              item[akey].c = item[akey].c + aux[key].c;
-              item[akey].s = item[akey].c + aux[key].s;
-              item[akey].w = item[akey].c + aux[key].w;
+              item[akey].files = item[akey].files + aux[key].files;
+              item[akey].pages = item[akey].pages + aux[key].pages;
             }
           });
           if (!flag) {
@@ -1277,7 +1277,13 @@ module.exports = {
       } = response;
 
       const apikeysStats = Object.keys(Stats);
-      const query = apikeysStats.map(item => {
+      const apikeysFStats = Object.keys(FileStats);
+      const diff = _.difference(apikeysStats, apikeysFStats);
+      diff.forEach(it => {
+        apikeysFStats.push(it);
+      });
+
+      const query = apikeysFStats.map(item => {
         return { apikey: item };
       });
       // const apikeysFileStats = Object.keys(FileStats);

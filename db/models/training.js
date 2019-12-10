@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
       tgt: DataTypes.STRING,
       status: DataTypes.STRING,
       fileId: DataTypes.STRING,
-
+      aggressivity: DataTypes.INTEGER,
       msg: DataTypes.STRING,
       result: DataTypes.STRING,
       alignationsTrained: DataTypes.STRING
