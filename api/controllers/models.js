@@ -14,6 +14,7 @@ const externalApi = require("../external_api/api");
 
 const {
   saveFileV2,
+  saveFile,
   deleteFolderRecursive,
   logsConsole
 } = require("./../util/functions");
@@ -142,26 +143,25 @@ module.exports = {
   },
   train: async (req, res) => {
     try {
-      const files = req.body.files;
-      const model = req.body.model;
-      const src = req.body.src;
-      const tgt = req.body.tgt;
-      const aggressivity = req.body.aggressivity;
-      const apikey = req.user.apikey;
-      const username = req.user.email;
+      const { model, src, tgt, aggressivity } = req.body;
+      const { apikey, email } = req.user;
 
-      const folderName = moment().valueOf();
-      const pathFolder = Path.resolve(
-        __dirname,
-        `./../../uploads/${folderName}/`
-      );
+      let files = [];
+      if (Array.isArray(req.files["files[]"])) {
+        files = req.files["files[]"];
+      } else {
+        files.push(req.files["files[]"]);
+      }
 
       map(
         files,
-        async item => {
-          const fileName = item.fileName;
-          const fileType = item.fileType;
-          const file = item.file;
+        async file => {
+          // const fileName = item.fileName;
+          // const fileType = item.fileType;
+          // const file = item.file;
+
+          const fileName = file.name;
+          const fileType = file.mimetype;
 
           const training = await Training.create({
             title: fileName,
@@ -173,6 +173,12 @@ module.exports = {
             status: "*" //solicitado
           });
 
+          const folderName = moment().valueOf();
+          const pathFolder = Path.resolve(
+            __dirname,
+            `./../../uploads/${folderName}/`
+          );
+
           fs.mkdirSync(pathFolder);
           const path = Path.resolve(
             __dirname,
@@ -180,7 +186,8 @@ module.exports = {
             fileName
           );
 
-          const save = await saveFileV2(file, folderName, fileName, fileType);
+          // const save = await saveFileV2(file, folderName, fileName, fileType);
+          const save = await saveFile(file, path);
 
           if (save) {
             let form = new FormData();
@@ -191,7 +198,7 @@ module.exports = {
             form.append("model", model);
             form.append("apikey", apikey);
             form.append("processname", "train");
-            form.append("username", username);
+            form.append("username", email);
             form.append("modestatus", 4);
 
             form.append("src", src);
@@ -221,8 +228,10 @@ module.exports = {
                 }
               );
               user.addTraining(training);
+              deleteFolderRecursive(pathFolder);
               return true;
             } else {
+              deleteFolderRecursive(pathFolder);
               throw new Error(errorMessage);
             }
           } else {
@@ -230,7 +239,6 @@ module.exports = {
           }
         },
         err => {
-          deleteFolderRecursive(pathFolder);
           if (err) {
             logsConsole({
               message: err.message,
