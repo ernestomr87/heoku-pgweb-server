@@ -152,13 +152,13 @@ module.exports = {
       } else {
         files.push(req.files["files[]"]);
       }
-
+      console.log("***********1******************");
       map(
         files,
         async file => {
           const fileName = file.name;
           const fileType = file.mimetype;
-
+          console.log("***********2******************");
           const training = await Training.create({
             title: fileName,
             model: model,
@@ -168,7 +168,7 @@ module.exports = {
             aggressivity,
             status: "*" //solicitado
           });
-
+          console.log("***********3******************");
           const folderName = moment().valueOf();
           const pathFolder = Path.resolve(
             __dirname,
@@ -181,27 +181,10 @@ module.exports = {
             `./../../uploads/${folderName}/`,
             fileName
           );
-
+          console.log("***********4******************");
           const save = await saveFile(file, path);
-
+          console.log("***********5******************");
           if (save) {
-            // let form = new FormData();
-
-            // form.append("file", fs.createReadStream(path));
-            // form.append("title", fileName);
-            // form.append("engine", 0);
-            // form.append("model", model);
-            // form.append("apikey", apikey);
-            // form.append("processname", "train");
-            // form.append("username", email);
-            // form.append("modestatus", 4);
-
-            // form.append("src", src);
-            // form.append("tgt", tgt);
-            // form.append("", aggressivity);
-
-            // form.append("notiflink", `${BASE_URL}/api/notification/models`);
-
             let form = {
               file: fs.createReadStream(path),
               title: fileName,
@@ -211,13 +194,12 @@ module.exports = {
               processname: "train",
               username: email,
               modestatus: 4,
-
               src: src,
               tgt: tgt,
               aggressivity: aggressivity,
               notiflink: `${BASE_URL}/api/notification/models`
             };
-
+            console.log("***********6******************");
             let body = await externalApi.sendfile(form);
 
             const fileId = body.fileId;
@@ -227,7 +209,7 @@ module.exports = {
                   id: req.userId
                 }
               });
-
+              console.log("***********7******************");
               await Training.update(
                 {
                   fileId
@@ -240,17 +222,20 @@ module.exports = {
               );
               user.addTraining(training);
               deleteFolderRecursive(pathFolder);
+              console.log("***********8******************")  
               return true;
             } else {
               deleteFolderRecursive(pathFolder);
               throw new Error(errorMessage);
             }
           } else {
+            console.log("***********E9******************")  
             throw new Error("Error to save file");
           }
         },
         err => {
           if (err) {
+            console.log("***********E10******************")  
             logsConsole({
               message: err.message,
               method: "train",
