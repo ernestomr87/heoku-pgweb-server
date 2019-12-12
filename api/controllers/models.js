@@ -156,10 +156,6 @@ module.exports = {
       map(
         files,
         async file => {
-          // const fileName = item.fileName;
-          // const fileType = item.fileType;
-          // const file = item.file;
-
           const fileName = file.name;
           const fileType = file.mimetype;
 
@@ -186,30 +182,45 @@ module.exports = {
             fileName
           );
 
-          // const save = await saveFileV2(file, folderName, fileName, fileType);
           const save = await saveFile(file, path);
 
           if (save) {
-            let form = new FormData();
+            // let form = new FormData();
 
-            form.append("file", fs.createReadStream(path));
-            form.append("title", fileName);
-            form.append("engine", 0);
-            form.append("model", model);
-            form.append("apikey", apikey);
-            form.append("processname", "train");
-            form.append("username", email);
-            form.append("modestatus", 4);
+            // form.append("file", fs.createReadStream(path));
+            // form.append("title", fileName);
+            // form.append("engine", 0);
+            // form.append("model", model);
+            // form.append("apikey", apikey);
+            // form.append("processname", "train");
+            // form.append("username", email);
+            // form.append("modestatus", 4);
 
-            form.append("src", src);
-            form.append("tgt", tgt);
-            form.append("aggressivity", aggressivity);
+            // form.append("src", src);
+            // form.append("tgt", tgt);
+            // form.append("", aggressivity);
 
-            form.append("notiflink", `${BASE_URL}/api/notification/models`);
+            // form.append("notiflink", `${BASE_URL}/api/notification/models`);
 
-            let body = await externalApi.sendfileV2(form);
+            let form = {
+              file: fs.createReadStream(path),
+              title: fileName,
+              engine: 0,
+              model: model,
+              apikey: apikey,
+              processname: "train",
+              username: email,
+              modestatus: 4,
 
-            const fileId = body.data.fileId;
+              src: src,
+              tgt: tgt,
+              aggressivity: aggressivity,
+              notiflink: `${BASE_URL}/api/notification/models`
+            };
+
+            let body = await externalApi.sendfile(form);
+
+            const fileId = body.fileId;
             if (fileId && req.userId) {
               const user = await User.findOne({
                 where: {

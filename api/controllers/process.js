@@ -767,15 +767,15 @@ module.exports = {
         engineTarget
       } = req.body;
 
+      const apikey = req.user.rol !== "admin" ? req.user.apikey : "000000";
       const username = req.userEmail;
+
       let files = [];
       if (Array.isArray(req.files["files[]"])) {
         files = req.files["files[]"];
       } else {
         files.push(req.files["files[]"]);
       }
-
-      const apikey = req.user.rol !== "admin" ? req.user.apikey : "000000";
 
       map(
         files,
@@ -785,7 +785,6 @@ module.exports = {
 
           const process = await Process.create({
             fileName,
-            // fileId,
             status: "waiting",
             fileType,
             processId,
@@ -814,24 +813,9 @@ module.exports = {
           const save = await saveFile(file, path);
 
           if (save) {
-            // let form = new FormData();
 
             let modestatus = req.user.typeOfUser === 1 ? 10 : 5;
             if (req.user.rol === "admin") modestatus = 10;
-
-            // form.append("file", fs.createReadStream(path));
-            // form.append("title", fileName);
-            // form.append("engine", engineId);
-            // form.append("src", engineSource);
-            // form.append("tgt", engineTarget);
-            // form.append("apikey", apikey);
-            // form.append("processname", "PGWEB");
-            // form.append("username", username);
-            // form.append("modestatus", modestatus);
-            // form.append(
-            //   "notiflink",
-            //   "http://pgweb.pangeamt.com:3004/api/notification"
-            // );
 
             let form = {
               file: fs.createReadStream(path),
