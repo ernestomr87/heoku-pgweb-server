@@ -126,6 +126,7 @@ router.put("/api/billing", [verifyToken], billing.edit);
 
 //SUSCRIPTIONS INFO
 router.get("/api/suscriptions", [verifyToken, isAdmin], suscriptions.list);
+router.get("/api/suscriptions/actives", suscriptions.listActive);
 router.get("/api/suscriptions/:id", [verifyToken, isAdmin], suscriptions.get);
 router.post("/api/suscriptions", [verifyToken, isAdmin], suscriptions.add);
 router.put("/api/suscriptions", [verifyToken, isAdmin], suscriptions.save);

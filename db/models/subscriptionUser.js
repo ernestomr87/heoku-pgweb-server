@@ -3,7 +3,7 @@ module.exports = (sequelize, DataTypes) => {
   const SubscriptionUser = sequelize.define(
     "SubscriptionUser",
     {
-      status: DataTypes.ENUM("active", "suspended", "terminated"),
+      status: DataTypes.ENUM("free", "active", "suspended", "terminated"),
       terminatedAt: DataTypes.DATE
     },
     {}

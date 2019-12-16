@@ -5,7 +5,9 @@ const User = db.User;
 const Notification = db.Notification;
 const TypeOfPermits = db.TypeOfPermits;
 const BillingInformation = db.BillingInformation;
-
+const SubscriptionUser = db.SubscriptionUser;
+const SubscriptionType = db.SubscriptionType;
+const moment = require("moment");
 const externalApi = require("../external_api/api");
 
 var jwt = require("jsonwebtoken");
@@ -16,6 +18,8 @@ var refreshTokens = {};
 
 exports.signup = async (req, res) => {
   try {
+    const suscription = req.body.suscription;
+
     const query = {
       fullName: req.body.fullName,
       email: req.body.email,
@@ -44,6 +48,21 @@ exports.signup = async (req, res) => {
         };
         await externalApi.addUser(data);
       }
+    }
+
+    if (suscription) {
+      const suscriptionDoc = await SubscriptionType.findByPk(suscription);
+
+      const querySU = {
+        status: "free",
+        terminatedAt: moment()
+          .add(suscriptionDoc.freeDays, "days")
+          .calendar()
+      };
+
+      const suDoc = await SubscriptionUser.create(querySU);
+      await suDoc.setUser(user.id);
+      await suDoc.setSubscriptionType(suscriptionDoc.id);
     }
 
     res.status(200).send({ userId: user.id });

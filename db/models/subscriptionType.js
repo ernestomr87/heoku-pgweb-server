@@ -18,6 +18,14 @@ module.exports = (sequelize, DataTypes) => {
       canTrain: DataTypes.BOOLEAN,
       canUseApi: DataTypes.BOOLEAN,
       canUsePGB: DataTypes.BOOLEAN,
+      recomended: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+      },
+      active: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+      },
       remove: {
         type: DataTypes.BOOLEAN,
         defaultValue: false

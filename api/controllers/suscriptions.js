@@ -25,6 +25,27 @@ module.exports = {
       });
     }
   },
+  listActive: async (req, res) => {
+    try {
+      const doc = await SubscriptionType.findAll({
+        where: {
+          remove: false,
+          active: true
+        }
+      });
+
+      return res.status(200).send(doc);
+    } catch (err) {
+      logsConsole({
+        message: err.message,
+        method: "suscriptions.get",
+        line: 42
+      });
+      res.status(500).json({
+        error: err
+      });
+    }
+  },
   get: async (req, res) => {
     try {
       const doc = await SubscriptionType.findByPk(req.params.id);
@@ -118,7 +139,9 @@ module.exports = {
         period,
         canUsePGB,
         canTrain,
-        canUseApi
+        canUseApi,
+        recomended,
+        active
       } = req.body;
 
       await SubscriptionType.update(
@@ -138,7 +161,9 @@ module.exports = {
           period,
           canUsePGB,
           canTrain,
-          canUseApi
+          canUseApi,
+          recomended,
+          active
         },
         {
           where: {
@@ -148,9 +173,7 @@ module.exports = {
       );
 
       return res.status(200).send({
-        data: {
-          id
-        }
+        id
       });
     } catch (err) {
       logsConsole({
