@@ -4,6 +4,9 @@ const db = require("./../../db/models/index");
 const User = db.User;
 
 const verifyToken = async (req, res, next) => {
+  console.log("--------------------");
+  console.log("--------verifyToken------------");
+  console.log("--------------------");
   let token = req.headers["x-access-token"] || req.body.token;
   if (!token) {
     return res.status(403).send({
@@ -68,6 +71,9 @@ const isClient = async (req, res, next) => {
 
 const isAdminIsCLient = async (req, res, next) => {
   try {
+    console.log("--------------------");
+    console.log("--------isAdminIsCLient------------");
+    console.log("--------------------");
     const user = await User.findByPk(req.userId);
     if (user.rol === "client" || user.rol === "admin") {
       next();

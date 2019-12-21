@@ -22,6 +22,8 @@ global.APP_ROOT = path.resolve(__dirname);
 // require("./api/controllers/users").listCorp();
 
 app.set("trust proxy");
+
+
 app.use(
   bodyParser.json({
     limit: "500mb",
