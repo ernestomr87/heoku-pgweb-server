@@ -6,11 +6,10 @@
     "start:u": "cross-env NODE_ENV=production cross-env NODE_APP=usa node ./bin/www",
     "dev:u": "cross-env NODE_ENV=development cross-env NODE_APP=usa node ./bin/www",
     "debug:u": "cross-env NODE_ENV=development cross-env NODE_APP=usa node --nolazy --inspect-brk=9229 ./bin/www",
-
     "start:p": "cross-env NODE_ENV=production cross-env NODE_APP=production node ./bin/www",
     "dev:p": "cross-env NODE_ENV=development cross-env NODE_APP=production node ./bin/www",
     "debug:p": "cross-env NODE_ENV=development cross-env NODE_APP=production node --nolazy --inspect-brk=9229 ./bin/www",
-
+    "start": "cross-env NODE_ENV=production cross-env NODE_APP=development node ./bin/www",
     "start:d": "cross-env NODE_ENV=production cross-env NODE_APP=development node ./bin/www",
     "dev:d": "cross-env NODE_ENV=development cross-env NODE_APP=development node ./bin/www",
     "debug:d": "cross-env NODE_ENV=development cross-env NODE_APP=development node --nolazy --inspect-brk=9229 ./bin/www"
