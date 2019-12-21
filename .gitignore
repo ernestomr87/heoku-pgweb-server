@@ -29,6 +29,6 @@ package-lock.json
 
 .vscode
 
-/uploads
+
 /build
 /logs/app.log
